@@ -1,0 +1,39 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "proto",
+      "camelcase": "Proto",
+      "scope": "source.proto",
+      "path": ".",
+      "file-types": [
+        "proto"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "tags": "queries/tags.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.6.0",
+    "license": "MIT",
+    "description": "Protobuf grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "Mohammad Ashar Khan",
+        "email": "ashar786khan@gmail.com"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/coder3101/tree-sitter-proto"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}
