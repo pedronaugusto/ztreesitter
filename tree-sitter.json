@@ -1,0 +1,30 @@
+{
+  "grammars": [
+    {
+      "name": "ledger",
+      "camelcase": "Ledger",
+      "scope": "source.ledger",
+      "path": ".",
+      "file-types": [
+        "ledger",
+        "journal"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "license": "ISC",
+    "description": "",
+    "links": {
+      "repository": "https://github.com/tree-sitter/tree-sitter-ledger"
+    }
+  },
+  "bindings": {
+    "c": false,
+    "go": false,
+    "node": true,
+    "python": false,
+    "rust": true,
+    "swift": false
+  }
+}
