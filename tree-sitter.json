@@ -1,0 +1,38 @@
+{
+  "grammars": [
+    {
+      "name": "angular",
+      "camelcase": "Angular",
+      "scope": "source.angular",
+      "path": ".",
+      "file-types": [
+        "component.html"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "folds": "queries/folds.scm",
+      "indents": "queries/indents.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.9.2",
+    "license": "MIT",
+    "description": "Tree-sitter grammar for the Angular framework",
+    "authors": [
+      {
+        "name": "Dennis van den Berg"
+      }
+    ],
+    "links": {
+      "repository": "git+https://github.com/dlvandenberg/tree-sitter-angular.git"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}
