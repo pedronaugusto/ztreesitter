@@ -1,0 +1,5 @@
+Mirrored from https://github.com/tree-sitter-perl/tree-sitter-pod at ffbd7f3b7b68edaaa0532898953c627355cb1a1a by ztreesitter's tools/catalogue.py.
+Every file here except this one and those listed below is that commit's, unmodified;
+files the build does not read (tests, bindings, build files) were left out.
+Generated: src/parser.c and the tree_sitter/ headers beside it, by tree-sitter 0.27.0 (`tree-sitter generate --js-runtime native`).
+Licence: the repository's (Artistic-2.0).
