@@ -1,0 +1,5 @@
+Mirrored from https://github.com/latex-lsp/tree-sitter-latex at fa8df448fc2c0192a8c2f8cfc97de53cb2b4ecb9 by ztreesitter's catalogue tool (zig build catalogue).
+Every file here except this one and those listed below is that commit's, unmodified;
+files the build does not read (tests, bindings, build files) were left out.
+Generated: src/parser.c and the tree_sitter/ headers beside it, by tree-sitter 0.27.1 (`tree-sitter generate --js-runtime native`).
+Licence: the repository's (MIT).
