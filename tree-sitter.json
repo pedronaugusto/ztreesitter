@@ -1,0 +1,30 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "ispc",
+      "camelcase": "ISPC",
+      "title": "ISPC",
+      "scope": "source.ispc",
+      "file-types": [
+        "ispc",
+        "isph"
+      ],
+      "injection-regex": "^ispc$",
+      "class-name": "TreeSitterIspc"
+    }
+  ],
+  "metadata": {
+    "version": "0.2.0",
+    "license": "MIT",
+    "description": "ISPC grammar for tree-sitter (based on C grammar)",
+    "authors": [
+      {
+        "name": "Fabian Wermelinger"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/tree-sitter-grammars/tree-sitter-ispc"
+    }
+  }
+}
