@@ -1,0 +1,36 @@
+{
+  "grammars": [
+    {
+      "name": "kos",
+      "camelcase": "Kos",
+      "scope": "source.kos",
+      "path": ".",
+      "file-types": [ "kos" ],
+      "first-line-regex": "#!.*\\bkos$",
+      "highlights": [ "queries/highlights.scm" ],
+      "injection-regex": "^kos$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Kos grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "Chris Dragan",
+        "email": "chris@dragan.dev"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/kos-lang/tree-sitter-kos"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}
