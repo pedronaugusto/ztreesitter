@@ -1,0 +1,4 @@
+Mirrored from https://github.com/tree-sitter-grammars/tree-sitter-bitbake at a5d04fdb5a69a02b8fa8eb5525a60dfb5309b73b by ztreesitter's tools/catalogue.py.
+Every file here except this one and those listed below is that commit's, unmodified;
+files the build does not read (tests, bindings, build files) were left out.
+Licence: the repository's (MIT).
