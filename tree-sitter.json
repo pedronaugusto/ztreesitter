@@ -1,0 +1,31 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "snl",
+      "path": ".",
+      "scope": "source.snl",
+      "file-types": [
+        "st",
+        "stt"
+      ],
+      "injection-regex": "^snl$",
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm"
+    }
+  ],
+  "metadata": {
+    "links": {
+      "repository": "https://github.com/minijackson/tree-sitter-snl"
+    },
+    "version": "0.2.1",
+    "license": "MIT",
+    "description": "tree-sitter grammar for the EPICS Sequencer's SNL files",
+    "authors": [
+      {
+        "name": "Rémi NICOLE",
+        "email": "remi.nicole@cea.fr"
+      }
+    ]
+  }
+}
