@@ -1,0 +1,43 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "wxml",
+      "camelcase": "WXML",
+      "title": "WeiXin Markup Language",
+      "scope": "source.wxml",
+      "file-types": [
+        "wxml"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "injection-regex": "^wxml$",
+      "class-name": "TreeSitterWxml"
+    }
+  ],
+  "metadata": {
+    "version": "0.2.0",
+    "license": "MIT",
+    "description": "WXML (WeiXin Markup Language) grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "BlockLune",
+        "email": "39331194+BlockLune@users.noreply.github.com",
+        "url": "https://blocklune.cc/"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/BlockLune/tree-sitter-wxml",
+      "funding": "https://github.com/BlockLune"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": false
+  }
+}
