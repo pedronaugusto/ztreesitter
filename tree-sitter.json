@@ -1,0 +1,42 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "xresources",
+      "camelcase": "Xresources",
+      "scope": "source.xresources",
+      "path": ".",
+      "file-types": [
+        "Xdefaults",
+        "Xresources",
+        ".Xdefaults",
+        ".Xresources"
+      ],
+      "highlights": "queries/xresources/highlights.scm",
+      "injections": "queries/xresources/injections.scm",
+      "injection-regex": "^xresources$"
+    }
+  ],
+  "metadata": {
+    "version": "1.0.0",
+    "license": "MIT",
+    "description": "Xresources grammar for tree-sitter",
+    "authors": [
+      {
+        "name": "Omar Valdez",
+        "email": "omarantoniovaldezf2@gmail.com"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/ValdezFOmar/tree-sitter-xresources"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": false,
+    "node": true,
+    "python": false,
+    "rust": true,
+    "swift": false
+  }
+}
