@@ -1,0 +1,5 @@
+Mirrored from https://github.com/alex-pinkus/tree-sitter-swift at 35245fbfee2fccf16273c6f4299438fb76875970 by ztreesitter's catalogue tool (zig build catalogue).
+Every file here except this one and those listed below is that commit's, unmodified;
+files the build does not read (tests, bindings, build files) were left out.
+Generated: src/parser.c and the tree_sitter/ headers beside it, by tree-sitter 0.27.1 (`tree-sitter generate --js-runtime native`).
+Licence: the repository's (MIT).
