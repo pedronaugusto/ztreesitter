@@ -1,0 +1,42 @@
+{
+  "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+  "grammars": [
+    {
+      "name": "rescript",
+      "camelcase": "ReScript",
+      "scope": "source.rescript",
+      "file-types": [
+        "res",
+        "resi"
+      ],
+      "highlights": "queries/highlights.scm",
+      "injections": "queries/injections.scm",
+      "locals": "queries/locals.scm",
+      "injection-regex": "^(res|rescript)$",
+      "class-name": "TreeSitterReScript"
+    }
+  ],
+  "metadata": {
+    "version": "6.0.0",
+    "license": "MIT",
+    "description": "ReScript parser for Tree-Sitter",
+    "authors": [
+      {
+        "name": "Victor Nakoryakov"
+      }
+    ],
+    "links": {
+      "repository": "https://github.com/tree-sitter/tree-sitter-rescript"
+    }
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "java": false,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true,
+    "zig": false
+  }
+}
