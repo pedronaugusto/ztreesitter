@@ -1,0 +1,19 @@
+{
+  "grammars": [
+    {
+      "name": "janet_simple",
+      "camelcase": "JanetSimple",
+      "scope": "source.janet",
+      "path": ".",
+      "file-types": [
+        "cgen",
+        "janet",
+        "jdn"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "0.0.8",
+    "description": "A Janet grammar for tree-sitter"
+  }
+}
