@@ -1,0 +1,1638 @@
+.{
+    .name = .ztreesitter,
+    .version = "0.1.0",
+    .minimum_zig_version = "0.16.0",
+    .fingerprint = 0x1fc8aa51589daad2,
+    .dependencies = .{
+        // Source layers in CI, for a root build only.
+        .gantry = .{
+            .url = "git+https://github.com/pedronaugusto/gantry#70fec2b48206b224b8f37b80a9ba4509fbceb9c4",
+            .hash = "gantry-0.1.0-1iNrkQGcBAB2GKOphtOijBq388UW2CCqJ18MsYkCHCSJ",
+            .lazy = true,
+        },
+        // BEGIN GENERATED tools/catalogue.py
+        .nvim_treesitter = .{
+            .url = "https://github.com/nvim-treesitter/nvim-treesitter/archive/910fdf6f49e9dee7e7257c7d11a76b040fdfb9de.tar.gz",
+            .hash = "N-V-__8AAAQzGwBRCPcFD0BBMJFUJrNVB3b7gywG4pZsbsgl",
+            .lazy = true,
+        },
+        .helix = .{
+            .url = "https://github.com/helix-editor/helix/archive/ba40e547426b0f9896c8bdc699a4ab11f2b37dbc.tar.gz",
+            .hash = "N-V-__8AACbujgAFM7Ky8zogq0HSVh-S3C2I58Q5ddHIbfOu",
+            .lazy = true,
+        },
+        .grammar_ada = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ce7fbb8b44d22ff48ea22fde8b51678c026dc0f3.tar.gz",
+            .hash = "N-V-__8AAFeLLgAMlZ-oww89rYNC9Nmju4xIKFv_2fXpFMpv",
+            .lazy = true,
+        },
+        .grammar_agda = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ab7bcd71a1c2161e680fbb3d696d67a6dfffca18.tar.gz",
+            .hash = "N-V-__8AAB_8-AAdv1t_0ySFOohSHocj4babI8q-67vFrmBA",
+            .lazy = true,
+        },
+        .grammar_angular = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/18af5d38cbaf9b9fe8b66cace15432fad3d17267.tar.gz",
+            .hash = "N-V-__8AAPWcDQAHq2awfqQQlGCe77tqQUInlp_qRYQgBAYY",
+            .lazy = true,
+        },
+        .grammar_apex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/897503b81d435e594fe7952b628f7ae87b3fe602.tar.gz",
+            .hash = "N-V-__8AAHN5lQDn3X1tNVP_q8tm-Qa81JB-1-pEz8BlvOTa",
+            .lazy = true,
+        },
+        .grammar_arduino = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/66b9eafccfee2ea5b9c43acf5f5794ede72cc29e.tar.gz",
+            .hash = "N-V-__8AAIEuGQHUEsZjgYVneMgnbkG6Q1883AzVN7wlm5tz",
+            .lazy = true,
+        },
+        .grammar_asm = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/60c86c57c14df9786f954ccc4734b35d1ea13563.tar.gz",
+            .hash = "N-V-__8AAF_vAgBaZizeMteT1gTheAMgR2FOyAoQydnkqnWK",
+            .lazy = true,
+        },
+        .grammar_astro = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/5793f5e2828993a07313787deabac95243567367.tar.gz",
+            .hash = "N-V-__8AAKLsAgDlyccWRX3I2I_t3aQoEOTLUNbwFdBg1OHz",
+            .lazy = true,
+        },
+        .grammar_authzed = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/845c8a8cda755fc6bbe131cfa291abe02eb1febf.tar.gz",
+            .hash = "N-V-__8AAEr5BQA1Zn07POee6q2PB6bk9ncTLqGuAYX2qG33",
+            .lazy = true,
+        },
+        .grammar_awk = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/813f354ccbd8063c22ac8fae08d9c6ec164ddf5a.tar.gz",
+            .hash = "N-V-__8AAIS0VgCvAl-Qr50TRAhvzeppwYnQh-s6cYQrj3CI",
+            .lazy = true,
+        },
+        .grammar_bash = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2acd744b6492f52094cdd728918e1388a923e917.tar.gz",
+            .hash = "N-V-__8AACrNmwBwp1walSTrC9eS10Pv834NFDq5hObtGAQJ",
+            .lazy = true,
+        },
+        .grammar_bass = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/7dd9afe8e9b807b400cf75a457a8b062ded901fe.tar.gz",
+            .hash = "N-V-__8AAJOGAQABWDXGPeWksBWvUg5afBYoXgAmIiS_btex",
+            .lazy = true,
+        },
+        .grammar_beancount = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/171a20b78e126c910bee08c61d328098ef65c9ea.tar.gz",
+            .hash = "N-V-__8AABXHCQAGsGrIq46fybPlh-VA_ed7-sar7VGutvL4",
+            .lazy = true,
+        },
+        .grammar_bibtex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/fa33d5daa39d0c95985ea92d0166a46b5b5673d3.tar.gz",
+            .hash = "N-V-__8AAJpuAQB2N7hUom878U-AIhQ4-k7ugGKr7m4BmPH-",
+            .lazy = true,
+        },
+        .grammar_bicep = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9be96f618ede66c94f07892a8210f2b97d001a3c.tar.gz",
+            .hash = "N-V-__8AAAIjEwA4hPlys90k6iFAug4ZVMwxw4S4SKoALHZk",
+            .lazy = true,
+        },
+        .grammar_bitbake = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d83ff9d3fe587cdaa74d9b4f9a2afb933c4bd567.tar.gz",
+            .hash = "N-V-__8AAJAAQQBOv7r_dKD--LzQmsJXecdB3j9HxaDboalk",
+            .lazy = true,
+        },
+        .grammar_blade = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ad681760e4cf50c2157f4eecfaba4476c78b277e.tar.gz",
+            .hash = "N-V-__8AAO8vYwH3XZJjmvjhPrmfKBF8-tgIJqvZ2Rtun-vr",
+            .lazy = true,
+        },
+        .grammar_bp = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/166547a3117b8c2c563500e514724dab6803d0c2.tar.gz",
+            .hash = "N-V-__8AAEsEAwBZeu0IGskFz5oFQqFabxDFOgI8O1q4maZX",
+            .lazy = true,
+        },
+        .grammar_bpftrace = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/97d416f4a6f9aa287291c604e238784f874b1b77.tar.gz",
+            .hash = "N-V-__8AADYGDQAzSDHZT50jvRaQhBfg7m5HALlvIqiT5PpS",
+            .lazy = true,
+        },
+        .grammar_brightscript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/408f1dd1bae5182104706a91af42c07c9b697c4c.tar.gz",
+            .hash = "N-V-__8AAO2UJAAhdFDwdDbvGceA6VnaYD0EWJE-ASyaasg9",
+            .lazy = true,
+        },
+        .grammar_c = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ea093ec759bb897aaa14800e4f5fc944f5e9a588.tar.gz",
+            .hash = "N-V-__8AAOdeQADsV84u6FQAnri53tThqkC4Y6VjlaPxkHTW",
+            .lazy = true,
+        },
+        .grammar_c3 = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/bb4a4401150a6677dc99bd2b8b7d1e7819ec87ec.tar.gz",
+            .hash = "N-V-__8AAEMuXgBVyRdUpEVdfuQWbpsKm1Mh_IPO8a-u9vf5",
+            .lazy = true,
+        },
+        .grammar_c_sharp = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b3b31deed58392b1b707cdb059dbe5c74e9114fc.tar.gz",
+            .hash = "N-V-__8AANGDywFmUU2a1GbhMhRF11Pqai5qk6kQAT5ty7Os",
+            .lazy = true,
+        },
+        .grammar_caddy = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/60eebba68a16e35e0756b7423b95db395fbfa81d.tar.gz",
+            .hash = "N-V-__8AAKgnBAATRkFEE-AN7NoR0jHJp9cNkooF4AsmOH7z",
+            .lazy = true,
+        },
+        .grammar_cairo = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ddc2f63716b25f4a9a21f79359feb0982df35ebe.tar.gz",
+            .hash = "N-V-__8AABKjJgA_lCN3__WT_p0vZ74aiRlGYr1BlC1U3C_R",
+            .lazy = true,
+        },
+        .grammar_capnp = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/5d463129001b835d4f81fd104cf4a236480fcc9f.tar.gz",
+            .hash = "N-V-__8AALGXBwAJ5cu0eSmQzzp3hsHuW-E7NXm2VY2JvTL9",
+            .lazy = true,
+        },
+        .grammar_chatito = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d17fb035f05cc3cc63fe23c513d6f03bc67a07b7.tar.gz",
+            .hash = "N-V-__8AAHvpAQDaFffScu5yj3cAx4Znq3gDT76JbWCiAee8",
+            .lazy = true,
+        },
+        .grammar_circom = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/92039a4011a84e402a0e3fb0c5f8fc18736b89f5.tar.gz",
+            .hash = "N-V-__8AAMvNBgAHv9-On2mKkoLwG-ZyuOlLbf-8gb_iwQMo",
+            .lazy = true,
+        },
+        .grammar_clojure = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b36166293c90eec37c90e013c1daf4f427257963.tar.gz",
+            .hash = "N-V-__8AALGODgByyJKHcZX3NcLJFlNu46NhVOQ3x8dhKuem",
+            .lazy = true,
+        },
+        .grammar_cmake = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/df0f02df81933f49250eba433b7b6ba8834229c7.tar.gz",
+            .hash = "N-V-__8AAPpsCQAyNjQrccrMI3foVdsPDKIc3kb6g-NG9Zit",
+            .lazy = true,
+        },
+        .grammar_comment = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/72e2fe5cd7c77a5642909c105dc1da7b2934afe0.tar.gz",
+            .hash = "N-V-__8AAGn0AABVnDcoZwApIR2PMwc5KWfqvmjbNWfQL0u6",
+            .lazy = true,
+        },
+        .grammar_commonlisp = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8ca6197a71cf110b6def8ac9ca5125f6eb65a1d9.tar.gz",
+            .hash = "N-V-__8AAKI_XQDJJJZ_S-OT6sBL7ZAe-muUaBETOELi-8qc",
+            .lazy = true,
+        },
+        .grammar_cooklang = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c81062d5e0f40722ffff89a4d20a3da6b35493b6.tar.gz",
+            .hash = "N-V-__8AAOjcAgDcI--0axu_91p1Pkk1h5TmaU3WWrtOoA4u",
+            .lazy = true,
+        },
+        .grammar_corn = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/7b65fc13a4822b0e51cf3595f5c1ac1cc3dad035.tar.gz",
+            .hash = "N-V-__8AABeSAQAH-oCwcj4ADlJLu1jLTVNY8J21WpBfZtDk",
+            .lazy = true,
+        },
+        .grammar_cpon = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/635d46277830e752aaef390340e1a8f0ca409d32.tar.gz",
+            .hash = "N-V-__8AAHzeAQAeNVaAl_4g-9R6L6QH6_2zIp5llMbp2vv_",
+            .lazy = true,
+        },
+        .grammar_cpp = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9aae0818ce2b287ad1f178078bf53ed2011c1934.tar.gz",
+            .hash = "N-V-__8AAJGLlAEon47Ezt8jcP5aqqz94ll968jI2LolS8CX",
+            .lazy = true,
+        },
+        .grammar_css = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/48a1aa2ed4e65ece6ed15dd68ba344f96a70e74f.tar.gz",
+            .hash = "N-V-__8AAAScCQBOZEbWc9RybHuJJgtHiAmhTLiDYtn7HBya",
+            .lazy = true,
+        },
+        .grammar_csv = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b2f20456410d6ef148f45a706754b182d45fbc20.tar.gz",
+            .hash = "N-V-__8AAORAAgA-XsDSwJZzajZ8u1SAcaIjXD8rLtHDOcCe",
+            .lazy = true,
+        },
+        .grammar_cuda = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/19e51a65f8489e9ba766b1e5b0a4310e5176e12e.tar.gz",
+            .hash = "N-V-__8AAKQi5QHYg-IlXBsmWL3h_prxXKMjY7K3nEn-QiQM",
+            .lazy = true,
+        },
+        .grammar_cue = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ecafa9d9380b5cac6960649273ee60be799f2c48.tar.gz",
+            .hash = "N-V-__8AAFnUHAAxK_nQrVJKFCV1qWk8pz8px-iQ6XUF1cvA",
+            .lazy = true,
+        },
+        .grammar_cylc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4ebc49cb5bc8517341957ee6767b1a82f62a02e9.tar.gz",
+            .hash = "N-V-__8AAHZrBQBEPOut1unQJlbYQ8fOgH0Cg6kDPYMs8oNb",
+            .lazy = true,
+        },
+        .grammar_d = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e097698d5604de598a7210b5cdd679201cc84652.tar.gz",
+            .hash = "N-V-__8AAIdAaQF5AQ1LyTd2d5-4A3_eeQsKwvIqbE1HxmR5",
+            .lazy = true,
+        },
+        .grammar_dart = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0b3f91be96a6e67f6ef7c7e74cec16ba76c54da3.tar.gz",
+            .hash = "N-V-__8AAGD0dgD_TNksewaelwLErUwH4aD0h6VW7Mjfgzm-",
+            .lazy = true,
+        },
+        .grammar_desktop = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/29cb33334f53f08fc9fbb58ff1edafebb41f5c4f.tar.gz",
+            .hash = "N-V-__8AAJNBAQC0H9Ii6IDD0DNiaFDWAYJLk5bgXcWMLcOK",
+            .lazy = true,
+        },
+        .grammar_devicetree = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6c7e0d6936114a27b368041c70423144c7cc738b.tar.gz",
+            .hash = "N-V-__8AAN2fEQA6ClhZ8NkTYsOO2CeroKvIKBGdXYXrXB25",
+            .lazy = true,
+        },
+        .grammar_dhall = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/94c88f8b74034182a9a480da0c63f90fb36f3ce4.tar.gz",
+            .hash = "N-V-__8AALTDIgAYq7Jh6KprmCXbGJctuYSxUwqSj9EFZLXq",
+            .lazy = true,
+        },
+        .grammar_diff = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a2643572f8ae5c69e09b84f133b2d50aa1d3ea63.tar.gz",
+            .hash = "N-V-__8AADIdAwAfRtM3V2qCkfVUX__7BUvxCvy46CltzcMH",
+            .lazy = true,
+        },
+        .grammar_disassembly = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/800ffbd4af2a371f74503ce9bc977155a7fea7f6.tar.gz",
+            .hash = "N-V-__8AADTpAQCftX942jUtUwpzfQTEgfIOQgm3kdHI9ej8",
+            .lazy = true,
+        },
+        .grammar_djot = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/1cd4e5b7a85fd4508298d4f34633063f287666a0.tar.gz",
+            .hash = "N-V-__8AANRbOABbKHwnOfenFAOVkLVWssCsU1zrxHvDvYUl",
+            .lazy = true,
+        },
+        .grammar_dockerfile = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d405246731a713354f0b51872409fc69550c99d4.tar.gz",
+            .hash = "N-V-__8AACJkBQBSaaPVRZZU8LVgzN3hlOEBHqp0-XEeNrkJ",
+            .lazy = true,
+        },
+        .grammar_dot = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/1f74bf678cd9668bc5ecf0bf40c6acd3db21e2ab.tar.gz",
+            .hash = "N-V-__8AAP-sAgAQqMICUMS4GagEiPRJnU5S1-22JvnnNBra",
+            .lazy = true,
+        },
+        .grammar_doxygen = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/abd3438a54d1b1636ba9b31327f2f4384764f8c8.tar.gz",
+            .hash = "N-V-__8AAGUgBQAE5Pf8SeMoANfGy6IbC2Md7zOMrsQ2hjbX",
+            .lazy = true,
+        },
+        .grammar_dtd = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c5b37f5b6f025809740023e984bf61a733377e1c.tar.gz",
+            .hash = "N-V-__8AAHZACQAKsFkN4EWIWreax1oIlEY4qNoV7itE9Lsp",
+            .lazy = true,
+        },
+        .grammar_earthfile = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/872836576640366c86f683760e3cd88700b894aa.tar.gz",
+            .hash = "N-V-__8AAERdNgCEkWiA_ftuyfvfS9Qicvzmsm_PqC3pcUZk",
+            .lazy = true,
+        },
+        .grammar_ebnf = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6be337fe165d800ae78cab5b1eb178d5768a7cf7.tar.gz",
+            .hash = "N-V-__8AAOykAAAvwXAdHM6siYqHQREtphfpB_ZXkwKEVSQG",
+            .lazy = true,
+        },
+        .grammar_editorconfig = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2e304600446bca51f1acafab99cb78869dbdd3df.tar.gz",
+            .hash = "N-V-__8AAJlZAQBHMXBby42vIsqnjKnECCYH0i9FigZKaXb2",
+            .lazy = true,
+        },
+        .grammar_eds = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a21b23f4036742a356b3d3b31881dcaa03c2686a.tar.gz",
+            .hash = "N-V-__8AAKOKAADbLh42J-Co7tqdyZI4JBQwDq2ewqeH8Z0w",
+            .lazy = true,
+        },
+        .grammar_eex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/153cab33fabf67692f9b6461b8586a6cbfeb63e1.tar.gz",
+            .hash = "N-V-__8AAPKmAAC4ApFN1AYbY1LpcI62VwYxky8e4iPnbyRI",
+            .lazy = true,
+        },
+        .grammar_elixir = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b659aabb39b2a916ca23d49bf0d5f1b8e70aebb3.tar.gz",
+            .hash = "N-V-__8AAM5xyABc6gA9ZxUtmEdH2WZ4uVUiD6XNLB3OX8Mf",
+            .lazy = true,
+        },
+        .grammar_elm = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ec29d28458ec50d1e278471b6e0f648d89ee4c62.tar.gz",
+            .hash = "N-V-__8AAJslFQAutVT9tH-y2IVXklzh5eJufKOh8VInIXpL",
+            .lazy = true,
+        },
+        .grammar_elsa = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6c1147bf78290d9a06ea4c5d3af1ea6455f71373.tar.gz",
+            .hash = "N-V-__8AAL3IAADZ4pLxrktp6R7dCVV3vQMkb-eZPJuj5OKP",
+            .lazy = true,
+        },
+        .grammar_elvish = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b3c2cba1963abef1d523cfce1c1d7eee01aed444.tar.gz",
+            .hash = "N-V-__8AAGbyCQCu2kTylIgp8R-9vYZv3gMM7CRXbEwCjQWg",
+            .lazy = true,
+        },
+        .grammar_embedded_template = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/29f91c6dfb38e73ca5f171633dd4861995667e9c.tar.gz",
+            .hash = "N-V-__8AAMb_AADrrjDniPt8uqKnPj0cCtBvmPXghr47877l",
+            .lazy = true,
+        },
+        .grammar_enforce = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b65103ee6636c945d50c8391b0187fb3425cc130.tar.gz",
+            .hash = "N-V-__8AAF5YFgCmyaRK_hUpPkbgRFlkLe396mW5DSQ4SEAN",
+            .lazy = true,
+        },
+        .grammar_erlang = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/143631d4987096c3fc6ebb161dcb6a7adce627cd.tar.gz",
+            .hash = "N-V-__8AALICJgDVKC9MJHoUeJVhl-oLafc3EAeGdF9V10wn",
+            .lazy = true,
+        },
+        .grammar_facility = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e4f9a2fce224a16812200f9244083955259d71a3.tar.gz",
+            .hash = "N-V-__8AACmMAgBzJ_I3PjA4mToNCY9j4AsteuQJAx8ZO_TF",
+            .lazy = true,
+        },
+        .grammar_faust = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3f740a94c2341b09a93f883f839e4a9f200e6bff.tar.gz",
+            .hash = "N-V-__8AAKX0GQBl7LTk19ZFiyx_8he-VafBI3KRdNaWVtdr",
+            .lazy = true,
+        },
+        .grammar_fennel = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/83965de173a1a0c95b549be868950ece991644a5.tar.gz",
+            .hash = "N-V-__8AAI_ANgDe5dpbHqVt_tfQ6rYQzYtRjz3roY9WXqQh",
+            .lazy = true,
+        },
+        .grammar_fidl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2f9158ca21add705d4aabe31968f426ef8351e05.tar.gz",
+            .hash = "N-V-__8AAASXBABXoKMksvvTlQdaAEkWo1ndKU7rDXSyLARJ",
+            .lazy = true,
+        },
+        .grammar_firrtl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/953fd24503f242f438701ef8ccd593a1e83a3df4.tar.gz",
+            .hash = "N-V-__8AAPRyCQDxH1qtpZOgkHbREyoCrWRdGC9oiqsipjmT",
+            .lazy = true,
+        },
+        .grammar_fish = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c9f198db7fb931c77f5e842c66925c79f80aea6a.tar.gz",
+            .hash = "N-V-__8AAKFuCQA7LUJ0JMWSTFS7cKkHKJHc8Kt7HY0ZzLzu",
+            .lazy = true,
+        },
+        .grammar_foam = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/704e3253291e3ef81f7cc69ba000338f8beda99b.tar.gz",
+            .hash = "N-V-__8AAFhvBgBSQUH4rsNj0h6uJTiyUcj0Q0savsBz05oB",
+            .lazy = true,
+        },
+        .grammar_forth = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6108dd5d20fa2bbcc520dbedf759c9fe690dc02c.tar.gz",
+            .hash = "N-V-__8AALbhBgBCSFtHcawmzz0HKu40w1pxgnOfAuKWi0u_",
+            .lazy = true,
+        },
+        .grammar_fortran = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6df0a43c9bc620c9fc6cdf5c74c04c0ba43b2f01.tar.gz",
+            .hash = "N-V-__8AAI4BOwJ2Y00ns8HvynwwwWczU_8D4aBimoTABr0Y",
+            .lazy = true,
+        },
+        .grammar_fsh = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/57aedb5a2ac06c1f68afcaea2af5a444860557e7.tar.gz",
+            .hash = "N-V-__8AAL86DAD3FknbzabpheeVfOQ90BXRjJPtEIRMMyJI",
+            .lazy = true,
+        },
+        .grammar_fsharp = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/aace974bbeee49816a7f8eae6d229b422051a2c2.tar.gz",
+            .hash = "N-V-__8AAE6JXAOu7O9Hvdr50hhHHJiPw8WQJgPsOhLRsqcZ",
+            .lazy = true,
+        },
+        .grammar_func = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/5109e441cf7069cae6f4f0b0e418332c663025fe.tar.gz",
+            .hash = "N-V-__8AAJygCgA3PgyjHmNmSusnMsyGZF_L79MUV3JS6-H8",
+            .lazy = true,
+        },
+        .grammar_gap = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8ae634825b0297fd1702cdbaf276c90c652a3366.tar.gz",
+            .hash = "N-V-__8AANrLDgBElZw6l81ObEWJykzBPcE8X2YgGtpVSHCp",
+            .lazy = true,
+        },
+        .grammar_gaptst = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/5621a5a88779355db04d9b8b97861ad161064a39.tar.gz",
+            .hash = "N-V-__8AAG_bAAANbI_3tEQGysa2jb9t6OkfUkdCUXw1Xdei",
+            .lazy = true,
+        },
+        .grammar_gdscript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/74304ce305c54e99647423298a55bb3459c9ffe2.tar.gz",
+            .hash = "N-V-__8AAAbPIgDaa4UE3LIx8lpZOgNyMedIEkwRE8S9r6rV",
+            .lazy = true,
+        },
+        .grammar_gdshader = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/77a3e77cac1b35e52b1c3212fabae0d4201c6d6a.tar.gz",
+            .hash = "N-V-__8AAPekDACqjxjjkJxsi3qAph6_qmHLAHG221vc9bZY",
+            .lazy = true,
+        },
+        .grammar_git_config = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/1c1af5f0578ea32bcdbbedd5150c7721b1200700.tar.gz",
+            .hash = "N-V-__8AANxtAQBAakTEK8b7oB4BemA_PA6s8rjhAJK7Ord4",
+            .lazy = true,
+        },
+        .grammar_git_rebase = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0392ad21a3b7c99c542cb5fa61cecad406eba3ca.tar.gz",
+            .hash = "N-V-__8AANbdAAAyncd-1w1uF9nvtA2bZneXPUXEPX_KwNgO",
+            .lazy = true,
+        },
+        .grammar_gitattributes = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6f3e2af53325ff94b45e6b3be7c72df9ecf55a8e.tar.gz",
+            .hash = "N-V-__8AAJteAgA_8C4dWgDC0CbBqil2wAuB4vUTaCSmWo67",
+            .lazy = true,
+        },
+        .grammar_gitcommit = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/7bfdcb0b0479d8aa9f3d84fa09526ff38836a8b3.tar.gz",
+            .hash = "N-V-__8AALErNQAnVmSSsS-9EdUdj-puZuNUyjcFVEPMkFAF",
+            .lazy = true,
+        },
+        .grammar_gitignore = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c2822f51c66efa9f8af2d35573333a1a5ca44f9c.tar.gz",
+            .hash = "N-V-__8AAIBYAQDAqdtSq3SxY6yJ1wqPzrEtuQenxdl8CDmd",
+            .lazy = true,
+        },
+        .grammar_gleam = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/44494ddacb0c4c0e42a432c3ae80d75bd0f410e8.tar.gz",
+            .hash = "N-V-__8AAJrWMgAqg3B625q24vWZ0VQFXo3pEBF68FuBmM0V",
+            .lazy = true,
+        },
+        .grammar_glimmer = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/24a926c7a16192b1d4666a838a6ea7872a6d74f9.tar.gz",
+            .hash = "N-V-__8AANVkBAB3_5hwiSDNWW0pjK68UYurBoWEA4lajK2x",
+            .lazy = true,
+        },
+        .grammar_glimmer_javascript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/12549ea5af4eb9f51c857e335f811b1cc01cbdd5.tar.gz",
+            .hash = "N-V-__8AAOpPKAA-f-ibrGcF7BoNM3TezmnxSBZtK0hkQ0az",
+            .lazy = true,
+        },
+        .grammar_glimmer_typescript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2db6b7aa90b5ea9426eab03771e0779ae1007e7b.tar.gz",
+            .hash = "N-V-__8AANIxjQAH7_TJ7jMXR2yQl_HoAMAv2C-aTEbpudya",
+            .lazy = true,
+        },
+        .grammar_glsl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/7b8cd6eb424f98fbe401629fe4b3c93aa3546fa7.tar.gz",
+            .hash = "N-V-__8AAN7JWQD9BvzHKt6Daz-b1OnIV6uO1c9wu1KtJH8Y",
+            .lazy = true,
+        },
+        .grammar_gn = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/87888663ca4328bfbb9e62ca4c82d449e7d026bf.tar.gz",
+            .hash = "N-V-__8AAKWGAwA71h-waZlrfqwguGMkCx40FTZBCY1KXV2b",
+            .lazy = true,
+        },
+        .grammar_gnuplot = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/751bf86ec77a5de10972777c0e5eb3a090ce1354.tar.gz",
+            .hash = "N-V-__8AAGDjkAFvt2aJGQlNgFsGnPpsaS_TebXviCm0wK6_",
+            .lazy = true,
+        },
+        .grammar_go = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/22f3171cea99cfb11a01e0b355348f840f2a5085.tar.gz",
+            .hash = "N-V-__8AAPYsHABV37FK4O39eahnhv8ovQvrwRzwtTkwfd7P",
+            .lazy = true,
+        },
+        .grammar_goctl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/fbbf2cf3fb22617a0d46307ed71253c5a7d41dbb.tar.gz",
+            .hash = "N-V-__8AAL2_AwA0REj7rh9yjri19lbeITXj8Aq1lgMMhMqq",
+            .lazy = true,
+        },
+        .grammar_godot_resource = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/fd4e81bb7a4c52b59d99a9697c3308041ca93066.tar.gz",
+            .hash = "N-V-__8AABCRAQAc2gsNTsWJhsib1yTTFxmiVebhKxYzny-v",
+            .lazy = true,
+        },
+        .grammar_gomod = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6643b53fd9a89586ad376b9eaeef3009da495bf9.tar.gz",
+            .hash = "N-V-__8AADyAAgAHcex9Tao5k_dFjnRPAd2EKYCsVFnmEIgC",
+            .lazy = true,
+        },
+        .grammar_gosum = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/bf8ad5b5e09a65f615889197c41776774d74a74b.tar.gz",
+            .hash = "N-V-__8AAMcCAQAuP4Q_WzGerHE0qzwH5oSWkMQhwZ1UsAIq",
+            .lazy = true,
+        },
+        .grammar_gotmpl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4c68539285ba23ddaf49d6aadd9be9dd79f07a9c.tar.gz",
+            .hash = "N-V-__8AAGX6DwAKTsYUj4vUHoo2a1kEP8cPFsTTeN6wSS1l",
+            .lazy = true,
+        },
+        .grammar_gowork = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/cf158a10e0289270b3cd63f893798535b34dba1d.tar.gz",
+            .hash = "N-V-__8AAMcxAQBi7zVWLwjZseeIFJsUFNrNqHJa4v9u7A8k",
+            .lazy = true,
+        },
+        .grammar_gpg = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ebef46a2c7d7ba9c29a71de2106ed1c6a26020e5.tar.gz",
+            .hash = "N-V-__8AABRTDgDu3dkQa7kzKvYAxMvr3xLo_GTI4n9JErav",
+            .lazy = true,
+        },
+        .grammar_graphql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/10e9ba6de28aa3073ffc2dac263801c8e16a87e2.tar.gz",
+            .hash = "N-V-__8AAOiUBQCRHPDRlzguTpiTydwehG1nEtoHWsi9uJ0e",
+            .lazy = true,
+        },
+        .grammar_gren = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2e31c1d3f37fc736fb5287313c00f8efa5a15fe1.tar.gz",
+            .hash = "N-V-__8AAGbjEwDYjm09umcfYcFbamEabf9NQ1bvuHpk-ew8",
+            .lazy = true,
+        },
+        .grammar_groovy = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e5a4ac9de16f39b9647af20f9be983e50115cd5d.tar.gz",
+            .hash = "N-V-__8AAOg7YwDdU2KvjBHHEpeP9W0uDUTM4zE_3lie_9r_",
+            .lazy = true,
+        },
+        .grammar_groq = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ff45f7b964f497836d4c05654ec10d45262748c7.tar.gz",
+            .hash = "N-V-__8AAE3CAwCRYco0YsFPt7iwAn-50l-VImfH3dJJe1bt",
+            .lazy = true,
+        },
+        .grammar_gstlaunch = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/896bef8e6bb5e02c6f99bb00bf3bd8fa7bc47a1b.tar.gz",
+            .hash = "N-V-__8AAJYwAgCY_fd-OixjifBhQmI65Vrf_NcnGBG5B7_W",
+            .lazy = true,
+        },
+        .grammar_hack = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f5d122f16f952ade1cf9b732042938e3d0b62c59.tar.gz",
+            .hash = "N-V-__8AAESiqwCaHt2oTPgjfWvBJ2YbYOx_MSf8kczYv54x",
+            .lazy = true,
+        },
+        .grammar_hare = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4ecd59796f91fdc0d62541798efc0bd5905053df.tar.gz",
+            .hash = "N-V-__8AAPVLEABH4mafw_IkG7rHr7kfD0PVWJpJZ78qQfga",
+            .lazy = true,
+        },
+        .grammar_haskell = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/40c12adcfc32ad5ec60a1d701f1546113f394e2f.tar.gz",
+            .hash = "N-V-__8AAPBWOQH545brMDDSHw0QVD1k8PJb_WjdhDHXeDcL",
+            .lazy = true,
+        },
+        .grammar_haskell_persistent = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9b73249638b0f9a5639dee11d3655affb07f19eb.tar.gz",
+            .hash = "N-V-__8AADHQCwBTZTMKxc1rhywmDglTn_e2FCk1U7nvVuMR",
+            .lazy = true,
+        },
+        .grammar_hcl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/493166b26e3f2d6b0a74611e0f284cadfe7034df.tar.gz",
+            .hash = "N-V-__8AAE_xCgB1YrzqJmX7wDhK_ZH9q0kTkPz2VmoDRLKk",
+            .lazy = true,
+        },
+        .grammar_heex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/22bd8bf513ba68db2aec0e782a958b27a130a27b.tar.gz",
+            .hash = "N-V-__8AAADvAgDHXtdqY_ARXYqSScOFUD6eZYAu2cn1Khfp",
+            .lazy = true,
+        },
+        .grammar_helm = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4c68539285ba23ddaf49d6aadd9be9dd79f07a9c.tar.gz",
+            .hash = "N-V-__8AAGX6DwAKTsYUj4vUHoo2a1kEP8cPFsTTeN6wSS1l",
+            .lazy = true,
+        },
+        .grammar_hjson = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e98242a8eeb6a3276bae1c5dd17b39cf06952131.tar.gz",
+            .hash = "N-V-__8AAJs2AQCQTvu5eFM0wVfeBxLyyQjTsmzqNuJ_3w7c",
+            .lazy = true,
+        },
+        .grammar_hlsl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/049af60c6f31e695f584a385602f5423d9c49a81.tar.gz",
+            .hash = "N-V-__8AADWvRwGNmWEye0p5le6lmWsjziDbfzfFLnC4irn3",
+            .lazy = true,
+        },
+        .grammar_hocon = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/874ce6bea61fc6fd8fc47dd5b42781510e0dc881.tar.gz",
+            .hash = "N-V-__8AANjmBAA05PyOskKfZUlZsAQWS8i6SjZ4imq8Nni6",
+            .lazy = true,
+        },
+        .grammar_hoon = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/465d7c05abb2a29dcaeb7a9abf1d6ff8e50f3624.tar.gz",
+            .hash = "N-V-__8AAAxX4QDi83pX9DMBYHvGcY8KFYmtXvSYysozUshl",
+            .lazy = true,
+        },
+        .grammar_html = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8ace29512a92343aec9e98b8dbe00834bade467a.tar.gz",
+            .hash = "N-V-__8AAErdAQDwoXha2rhmck87Nr0aQC80aqpFd95WidNu",
+            .lazy = true,
+        },
+        .grammar_htmldjango = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/52fbe6d0d6bfe125bfd696c907f87fdeddd52786.tar.gz",
+            .hash = "N-V-__8AAIVXBgCwHj98E9CLmT_8THePzrEQkC4ME7xvY5mr",
+            .lazy = true,
+        },
+        .grammar_http = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a4d558d4441899c465ea5b6fa7c79b5caa49d0c1.tar.gz",
+            .hash = "N-V-__8AALsGBwBD7F4zcyR0oSd67Iwk5VW4iiIrnJ3iefpm",
+            .lazy = true,
+        },
+        .grammar_hurl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f84d7cc3fe35f79250307916a300529e7deda88d.tar.gz",
+            .hash = "N-V-__8AAJVJDQDnQZoT918s9cmzt9zKG-qSxL43Lk-bWZ5X",
+            .lazy = true,
+        },
+        .grammar_hyprlang = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ecf146c8edd59230d8b7b35e0bea40bd58ad5f05.tar.gz",
+            .hash = "N-V-__8AADb-AgAvVcR4xAbJRlte-KKAXjqqgoJkZIiehye5",
+            .lazy = true,
+        },
+        .grammar_idl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/381cd627ce4ec1c0dee305f199a0b854a6858443.tar.gz",
+            .hash = "N-V-__8AABfnKQDlllAZQHZEZISw86XZQYrXI6upJ65buHyG",
+            .lazy = true,
+        },
+        .grammar_idris = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/fc7dc7bf7e67b95d7cd54868a0a88bdb0d753a84.tar.gz",
+            .hash = "N-V-__8AABEswABQNV0Bo_eZZKmcBG02328nwC0bgwYcVBGW",
+            .lazy = true,
+        },
+        .grammar_ini = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ec7def4ad82c7f603c2e7c5dc47a1e7c3500755a.tar.gz",
+            .hash = "N-V-__8AAMbzAAAqld1Db3T9opFmf18GqsIjNheq0PuPd897",
+            .lazy = true,
+        },
+        .grammar_inko = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f09f0bc07b4cf2e66b1e7ed9498673f3a32b007c.tar.gz",
+            .hash = "N-V-__8AAEh7KwCaYy7q_iUXFSHiWRcx5Y4gvEVdN9KzD2Wz",
+            .lazy = true,
+        },
+        .grammar_ispc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4e8fd04318953794a4547ddd3805be4ec9a61074.tar.gz",
+            .hash = "N-V-__8AAPKEfgDvM9K3SOZykwA2H9ShPkEualmyg2bS2Z_W",
+            .lazy = true,
+        },
+        .grammar_janet_simple = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e14deaa2568bf854664d5e38f9816ce9f591b349.tar.gz",
+            .hash = "N-V-__8AAHHcAgAMnW3FyaLG7yJUyVhh-378MQsY8szgg3Vr",
+            .lazy = true,
+        },
+        .grammar_java = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/cd4175ecc0f2829aa288ac423afb4a7f3665ec25.tar.gz",
+            .hash = "N-V-__8AAN-FKwBhgZJscIENsqZtKFimE-pTeZoDKjdom-I0",
+            .lazy = true,
+        },
+        .grammar_javadoc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3dee486e1eae2cfacb1efd446f6b0c14e74ebcf5.tar.gz",
+            .hash = "N-V-__8AAHtxBwCkSzLJMbYZ8vsf6VfUo2XiUQZ6PFhrhkfV",
+            .lazy = true,
+        },
+        .grammar_javascript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e9459c957b5fa91c2fe1621b9a25b480bcf2186c.tar.gz",
+            .hash = "N-V-__8AAOnRLwDZ7DHGIe_4kr5jDBQmtkFuiUpyGAyMuOv8",
+            .lazy = true,
+        },
+        .grammar_jinja = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f6889b3fd98a638de84d2220433f373805ab1a77.tar.gz",
+            .hash = "N-V-__8AAIGtGwA0jIoAd070If8xiCL1pfCBpPdnEq4N7Zuu",
+            .lazy = true,
+        },
+        .grammar_jinja_inline = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f6889b3fd98a638de84d2220433f373805ab1a77.tar.gz",
+            .hash = "N-V-__8AAIGtGwA0jIoAd070If8xiCL1pfCBpPdnEq4N7Zuu",
+            .lazy = true,
+        },
+        .grammar_jjdescription = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d43b3eec900900f63964bf0887933cb280c518bf.tar.gz",
+            .hash = "N-V-__8AAJlRAQDrc434KOnk1BPPGh3_ooO9aVODgeJrikr3",
+            .lazy = true,
+        },
+        .grammar_jq = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e2de4a1fcc909390f026fff7dad2d0c0306e7d76.tar.gz",
+            .hash = "N-V-__8AAKyRCwDlahSGTTkrtvdANwPD265MFkFvY2-qOe54",
+            .lazy = true,
+        },
+        .grammar_jsdoc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/72fa6a80c2e52884399e1b723a1aa92308d8b4b9.tar.gz",
+            .hash = "N-V-__8AAGvFAgDvFE-Fqwho7Cwux7lgJpowzIl7qpJ-Xyhp",
+            .lazy = true,
+        },
+        .grammar_json = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f81951ff8add6f0e2837750ec72d5acf01448be0.tar.gz",
+            .hash = "N-V-__8AABb9AADuX0S4Dju-H9EH4XpYGL55gdVuE7dw_jmF",
+            .lazy = true,
+        },
+        .grammar_json5 = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9b5d284b99611d9c8431607c927fb83c50d7df35.tar.gz",
+            .hash = "N-V-__8AAK2BAQAxmoBVs94zReCOo8i-WkBkwUZbMyux1fNd",
+            .lazy = true,
+        },
+        .grammar_jsonnet = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3e8ccce6a4791232268a21369ada473d8398515f.tar.gz",
+            .hash = "N-V-__8AAK4UCQCibRVSWRCmOBvrymci_XvbmM03vjgvKt4_",
+            .lazy = true,
+        },
+        .grammar_julia = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/881d70ccf94f6ca73981667668f1f8d7841531ea.tar.gz",
+            .hash = "N-V-__8AALm-cwFGXgSD_BuE2mAdkc7Evjg1joOUMZ533xQO",
+            .lazy = true,
+        },
+        .grammar_just = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/98965a59d1b2fc96c88944585cb7f721e115cf24.tar.gz",
+            .hash = "N-V-__8AAHHFBQA_FpWrOYDVPLDDyO1daWz5eWRzSbXRMhCi",
+            .lazy = true,
+        },
+        .grammar_kcl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b125d427a115469ef8beb79269370241a5b0598c.tar.gz",
+            .hash = "N-V-__8AAArGaABSLHoRe8TtjKpRKZ82kwLhud7vnWUZtoOo",
+            .lazy = true,
+        },
+        .grammar_kconfig = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/15c863e12e53b6c324ad6064b84389146391de72.tar.gz",
+            .hash = "N-V-__8AAHaoBgCY5f6AHs0Zrc9ulpdeE2oBwulva6o9Q4Su",
+            .lazy = true,
+        },
+        .grammar_kdl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6a269ce1908f6b2c681b007edbe92d334cb4aa4c.tar.gz",
+            .hash = "N-V-__8AAHynCADIZH1rlW1f3aLAy4dQeNN5_cA1LeL78g3J",
+            .lazy = true,
+        },
+        .grammar_kitty = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a5d48bae8972b9cca76b434cbd3bcb14f8abb97c.tar.gz",
+            .hash = "N-V-__8AAE1lVQAXgl9UOWyzDeSy73VUIUm7E9Bb1g8xmrlH",
+            .lazy = true,
+        },
+        .grammar_kos = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4ef2271778eb98e134dab136808f4ba4190daa87.tar.gz",
+            .hash = "N-V-__8AAHamEAC5ekDLydHURNh3FI0QPDcMn1Ez35crMyyw",
+            .lazy = true,
+        },
+        .grammar_kotlin = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/bbf2c01a72bb85a74fb97f9004fb39290085aaa6.tar.gz",
+            .hash = "N-V-__8AAGcoCQJLJJNMU1DNP3tGqByNQS7Xr2BpzEUPKfqs",
+            .lazy = true,
+        },
+        .grammar_koto = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c410acb3a7c49d9f7c54e33e15553983c508a8f8.tar.gz",
+            .hash = "N-V-__8AAAdE9gEWPnLSHW_wriJ8BX8XnicUUNEuHtOLJQFj",
+            .lazy = true,
+        },
+        .grammar_kusto = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f65d54c889f781dcb2e5b5d3c7fa0029b03e207d.tar.gz",
+            .hash = "N-V-__8AAMxiBQDOpSRHWsgjNJqKYTZsLYZ_be5PBsi8lgyg",
+            .lazy = true,
+        },
+        .grammar_lalrpop = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4712c8ea3498dfe97bb68bf3dcba5bde6c698f11.tar.gz",
+            .hash = "N-V-__8AAPEtBwAaplL1Ft4jRP7wAcR1k1v89cWQejfK6vTF",
+            .lazy = true,
+        },
+        .grammar_latex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/791eef87b4a97c010cdbbec69e7409cebdec66f8.tar.gz",
+            .hash = "N-V-__8AAHcPpQJWSiGiQ-Jc498CJSOGni9YOQ_s5AtwSoN_",
+            .lazy = true,
+        },
+        .grammar_ledger = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/405048b1353c212e5e76925e23f54a77b7fa0439.tar.gz",
+            .hash = "N-V-__8AAOMkCQCW3P11xcT9iJDtu_vgG62QYu-dKH9wnbf6",
+            .lazy = true,
+        },
+        .grammar_leo = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b7468fcaa400b174c9b6e0325c4d48e15aa04166.tar.gz",
+            .hash = "N-V-__8AAMpRJwAaWqSynN-r8E-6B_WqTdp4lDeaYdPQZsWx",
+            .lazy = true,
+        },
+        .grammar_linkerscript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b4f6be6a3162f9c6b4a7b010368b42354bd7c81e.tar.gz",
+            .hash = "N-V-__8AAAsCCQCo3lOzmIIvo3lXeEnecUcPFysZBhiV9lk3",
+            .lazy = true,
+        },
+        .grammar_liquid = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/7f06944b1a646ab8c3fc85d152d2925c67f75389.tar.gz",
+            .hash = "N-V-__8AAImmEQAPllXBFltPz1pODpquAmYej1OgwmmimByS",
+            .lazy = true,
+        },
+        .grammar_liquidsoap = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6ab0f89f426396441689091137d391ed7aa19c06.tar.gz",
+            .hash = "N-V-__8AAAJqLAB_e3As2UlaMOpH9jb5s3tQIKbunTCys1PE",
+            .lazy = true,
+        },
+        .grammar_llvm = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b7614d9285aa2dd68bf5c0ba4fb7154081665308.tar.gz",
+            .hash = "N-V-__8AAEyIXwCqVg8Uu-0qvNxaPGAHqZXvh17NK7ARkXTM",
+            .lazy = true,
+        },
+        .grammar_lua = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/57997cd6fd4df00d9c14c37d9b7331d66032e785.tar.gz",
+            .hash = "N-V-__8AAI2eBwBj_NuHMzf1ub_nEO0NTpseE6tJHrVldVuV",
+            .lazy = true,
+        },
+        .grammar_luadoc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/01d92191eae83bc9eaf34b097e9b1efdc6777be3.tar.gz",
+            .hash = "N-V-__8AANMECwB7dcEUXjtP7_xESeBCUqzxban0hTRaVyk6",
+            .lazy = true,
+        },
+        .grammar_luap = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4d400a0f4dfab8648e7c1a345c487a9af37646bc.tar.gz",
+            .hash = "N-V-__8AAMKcAQBEgCLeQVOfVU2yqnHtyECydRDDVZM_Yp7d",
+            .lazy = true,
+        },
+        .grammar_luau = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/126f9f0b6dd3c86aac55a224a22f7c5eceaf968d.tar.gz",
+            .hash = "N-V-__8AACHSDAASGYP1uRdTYd9886JncoET9cIFj84Q43EW",
+            .lazy = true,
+        },
+        .grammar_m68k = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f9c7351d998d6138dfb46490c0b6428edb53020b.tar.gz",
+            .hash = "N-V-__8AAP5tOgAS86mI_1TcqeFBO61UUIetuPawaQi3OG_L",
+            .lazy = true,
+        },
+        .grammar_make = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a3c60a5304979b67594cfc1aa30aa4ed35f7a47b.tar.gz",
+            .hash = "N-V-__8AABVLEQB5EnLnKuXzijAbwNYGCStllUkV5qjc3eLc",
+            .lazy = true,
+        },
+        .grammar_markdown = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ad7f014182b8ce3402f67361bd04ece9e100d1cc.tar.gz",
+            .hash = "N-V-__8AAJ3gSQA3nIjc6LaDOeKhtl5V3mkeY7M5mqks0GbF",
+            .lazy = true,
+        },
+        .grammar_markdown_inline = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ad7f014182b8ce3402f67361bd04ece9e100d1cc.tar.gz",
+            .hash = "N-V-__8AAJ3gSQA3nIjc6LaDOeKhtl5V3mkeY7M5mqks0GbF",
+            .lazy = true,
+        },
+        .grammar_matlab = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/40d30efcfdf090d36c89d83142515153345058b2.tar.gz",
+            .hash = "N-V-__8AAC6ANQCMCT5B8rKbcFXcgF69zKr3rU0KGYqibKhU",
+            .lazy = true,
+        },
+        .grammar_menhir = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/5bd898fe1f502459e19e8a76697213532a3e52f2.tar.gz",
+            .hash = "N-V-__8AANpSBQBh2HGJ-PWoudNUGF3QRf25VmUfARW5jf4C",
+            .lazy = true,
+        },
+        .grammar_mermaid = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e8247b9c7a2c4496538090568948bc924b8b3be3.tar.gz",
+            .hash = "N-V-__8AAIY8EQDJ4soTXXWR-vM34iC2jk-AsWm0R8_HTYwh",
+            .lazy = true,
+        },
+        .grammar_meson = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/759ceb6333ba293e063829062e7c44425a0b087c.tar.gz",
+            .hash = "N-V-__8AAJNcDQCO-fh_iVZjy2-UGkkI-IDAt0TYLqoXcFHM",
+            .lazy = true,
+        },
+        .grammar_mlir = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/1026a0df0dd1b162ad63a4947abab319d7ff4c8c.tar.gz",
+            .hash = "N-V-__8AAGBJuADk0yR6VnP9uQutX5f3tSWInP790EtNKgmR",
+            .lazy = true,
+        },
+        .grammar_nasm = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d06e7d4959b68196ca3ae8b6d656c6bef9a562a4.tar.gz",
+            .hash = "N-V-__8AABteUwAV48NHGJr8OgdyisyNZQCFs4SsqFOGnxEv",
+            .lazy = true,
+        },
+        .grammar_nginx = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/5e1845b10abf55c5c991d2420ea094f766992262.tar.gz",
+            .hash = "N-V-__8AALASBgBJL5DABcWjLAymkgAvgPZ1QfdSMEIhN1Oh",
+            .lazy = true,
+        },
+        .grammar_nickel = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/239d309402cff13b69db7943555f6e742a47fbd3.tar.gz",
+            .hash = "N-V-__8AAOLFFQBFyl5vSH9mr9qw0koZnu0ApVd9hTMa_Ig0",
+            .lazy = true,
+        },
+        .grammar_nim = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/540bd92058ed2f71aa3e3e4aabbc1e6d4899ca78.tar.gz",
+            .hash = "N-V-__8AAOGAgAJHg8kMthAogq7pa_fCNnIvoP7tyP20dK78",
+            .lazy = true,
+        },
+        .grammar_nim_format_string = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f9be39637e670b1f3f606a5216e430a18a396c23.tar.gz",
+            .hash = "N-V-__8AADCjAQBUpbeKFG2E9Ycj4ywrSR488nEkpmjVfj24",
+            .lazy = true,
+        },
+        .grammar_ninja = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c6dabfb3dd44e1cd48335c55a5bb37d9c4dfc11a.tar.gz",
+            .hash = "N-V-__8AALUlAwAIEBJp3kbN6eNPqqKzD4bpeFbU_EGZsNOM",
+            .lazy = true,
+        },
+        .grammar_nix = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/372d5ca6160ccdf89e04e79a805f70a549a84ebc.tar.gz",
+            .hash = "N-V-__8AALrpCgA8FImxzH4jieCx3iMKJX1XZLnb0GyB2975",
+            .lazy = true,
+        },
+        .grammar_nqc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9047e885c83ed2764ff497b9f2167b59730d68a1.tar.gz",
+            .hash = "N-V-__8AAMoCRwD3xFvNkV_Fm5FqdoaYmCJLsd4pKPk-aoT-",
+            .lazy = true,
+        },
+        .grammar_nu = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/192551d285a39e576a8b7043e919ff0708b17877.tar.gz",
+            .hash = "N-V-__8AAEbVjQDXMduZTdF-7eZywDaPsdonX6dZpvGGym5z",
+            .lazy = true,
+        },
+        .grammar_objc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a63236b893762c53c369ce2f5a9216120c3f86b1.tar.gz",
+            .hash = "N-V-__8AAACltwHeO9egoA6N23EsuwfOFocGvflbdALsn2cr",
+            .lazy = true,
+        },
+        .grammar_objdump = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/54326c49d87f21910eacf3c26e3cef68fdbe72b1.tar.gz",
+            .hash = "N-V-__8AAJDpAQBuuh0FNVJIMh1QM3UYEb8B6jITBWLwUeBY",
+            .lazy = true,
+        },
+        .grammar_ocaml = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b625ff3882c1e072edc9ab04fde2199bb250c74d.tar.gz",
+            .hash = "N-V-__8AAPrHvwJKGBsWa4d_bNPvqGijRv3r1t3kicounhcS",
+            .lazy = true,
+        },
+        .grammar_ocaml_interface = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b625ff3882c1e072edc9ab04fde2199bb250c74d.tar.gz",
+            .hash = "N-V-__8AAPrHvwJKGBsWa4d_bNPvqGijRv3r1t3kicounhcS",
+            .lazy = true,
+        },
+        .grammar_ocamllex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/aac51fd1c0f5220fd13be093b1b1ed7ce3ea5f96.tar.gz",
+            .hash = "N-V-__8AACIKAgAFuOSWv-FL404awsvkWElEGKFzAfLn12am",
+            .lazy = true,
+        },
+        .grammar_odin = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e7c30bf74634cc82c973cf95585683c6ca27f5e0.tar.gz",
+            .hash = "N-V-__8AAKe05gDoxXMawsZlzufSEzYLPKi-bNAJLhV8K0sJ",
+            .lazy = true,
+        },
+        .grammar_pascal = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d43a3d1c7e860fabc55a153a21577ad05ac1f00b.tar.gz",
+            .hash = "N-V-__8AAFcNPABSj65oAhvHLvj4ZL3Rkac5cu9OBRaLCad8",
+            .lazy = true,
+        },
+        .grammar_passwd = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8b4dae01db2487c7d9f71676c2d9d761e35864b1.tar.gz",
+            .hash = "N-V-__8AAJJiAABbkbrpHEVhxDF0IDJ-rKRfxe47v22sALir",
+            .lazy = true,
+        },
+        .grammar_pem = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f73a0e1fbc77a98dd915f3f718becee795e1a270.tar.gz",
+            .hash = "N-V-__8AAF-rAACOi5Aaoxsp5mJQgZHzB7sDQMI3noYD3OiB",
+            .lazy = true,
+        },
+        .grammar_perl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/748bef6b45f0011511a29b85c5388e101de62d35.tar.gz",
+            .hash = "N-V-__8AAN7FxgHeOaKrh3bGsdcK-1SKCfpakbOllxq3VfUp",
+            .lazy = true,
+        },
+        .grammar_php = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/601eac6bcf21bc91467ac401395db4687f046f5c.tar.gz",
+            .hash = "N-V-__8AANr54wApV4W4juHYphrg6IYdsY-2MZerM2LW3RRP",
+            .lazy = true,
+        },
+        .grammar_php_only = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/601eac6bcf21bc91467ac401395db4687f046f5c.tar.gz",
+            .hash = "N-V-__8AANr54wApV4W4juHYphrg6IYdsY-2MZerM2LW3RRP",
+            .lazy = true,
+        },
+        .grammar_phpdoc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ef13d192e3d850a825d992a83241896633534660.tar.gz",
+            .hash = "N-V-__8AANMiFwBBmOvr6J5yTKJC9um3TKM78RH-E3OJf6LB",
+            .lazy = true,
+        },
+        .grammar_pioasm = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9dbc01e9d098db568ca030e9c2c5664025f7bf51.tar.gz",
+            .hash = "N-V-__8AAGtuAwB9xaKNH1_jMg3dF8JxBVq-jcKi0nfGrU9c",
+            .lazy = true,
+        },
+        .grammar_pkl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f2141f2341ba5ff7e30c6b66b8d91b41f7607f0b.tar.gz",
+            .hash = "N-V-__8AAJZLIABrKImu_iAqoHEHCMg4oWSNC2AeEcrProbk",
+            .lazy = true,
+        },
+        .grammar_po = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/31b0365b72c587881b6264c890d07aa4449cd7bd.tar.gz",
+            .hash = "N-V-__8AAL15AQC6GqBw8ZKVV71h08y5XJFSsh1HJVf0QcL9",
+            .lazy = true,
+        },
+        .grammar_pod = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0618f889bbe848a8eff388e1642e4c0a2a5142d1.tar.gz",
+            .hash = "N-V-__8AAM15AQC9v-eaWkZA8qRC99bHR6SNsTyv0cj3CUyf",
+            .lazy = true,
+        },
+        .grammar_poe_filter = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/119f1cafdbb79a47439abe4d3939a25f333dd568.tar.gz",
+            .hash = "N-V-__8AAGfSBgCKkvQZrrmZxlFNqARNVGFPTT1TFN3SUjeE",
+            .lazy = true,
+        },
+        .grammar_pony = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c525fb15372ed6dbc8891b3d6f6071e531176b1f.tar.gz",
+            .hash = "N-V-__8AAJDdSgBVM95LYN47j1XvX752C65MVMO2A2sIFXtY",
+            .lazy = true,
+        },
+        .grammar_powershell = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4d823ded75ce84199b7c4f4592587274b5bb1502.tar.gz",
+            .hash = "N-V-__8AAAaVSwAdI0bbdcaX83Fsptun7g0eRUVf5b47oGr-",
+            .lazy = true,
+        },
+        .grammar_printf = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e7960d7b0cad519904d779b8f0a309a9895da2d9.tar.gz",
+            .hash = "N-V-__8AAMeiAABrpENU8CjOTHVRcq92D0FyeRWlEZt8IeL7",
+            .lazy = true,
+        },
+        .grammar_prisma = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d5b3992f065cff9247ce2ce230158c26a3be2b8c.tar.gz",
+            .hash = "N-V-__8AAPGlBAD9kgzC83Kf4VuubPuBhvk___m0kpquZq2O",
+            .lazy = true,
+        },
+        .grammar_promql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/abb0de3b6b2a6dc8a4e9c51c412015a36a0a3f52.tar.gz",
+            .hash = "N-V-__8AAPUzAwBj3rf56SkdpL8derNoYu-E7Wbyc8ibYd_e",
+            .lazy = true,
+        },
+        .grammar_properties = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0b1e999c28beb43de9e89083d8b9faad9c0b0612.tar.gz",
+            .hash = "N-V-__8AAAxoAQDdno_G369lBnNK8MtbicXsplp6Ixb7g65p",
+            .lazy = true,
+        },
+        .grammar_proto = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b1c93f60b3a7d64e407861648125909c4ace298a.tar.gz",
+            .hash = "N-V-__8AAK4gBgBplTGrRSHnLnFEtX0kRj19rMc2nk_-yUGJ",
+            .lazy = true,
+        },
+        .grammar_prql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/454406c92c94fe1da30796ff276b3a5cf188d79d.tar.gz",
+            .hash = "N-V-__8AAOuaDAADHWyv64RSnNpLDDR9HmO5rfqeOiTjcjKC",
+            .lazy = true,
+        },
+        .grammar_psv = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b2f20456410d6ef148f45a706754b182d45fbc20.tar.gz",
+            .hash = "N-V-__8AAORAAgA-XsDSwJZzajZ8u1SAcaIjXD8rLtHDOcCe",
+            .lazy = true,
+        },
+        .grammar_pug = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/095bbec342c152b19f5d7ed29fb83c650c643041.tar.gz",
+            .hash = "N-V-__8AAEhLEQDg7-CSFPY7VLlVz3TskrMp9fzWxsC0JUTj",
+            .lazy = true,
+        },
+        .grammar_puppet = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/dbdf3e826faeaa245f58b54decf7fa30e3ee3e49.tar.gz",
+            .hash = "N-V-__8AAOb5CwDK9pSC7c3m160hw11Ino5lTsFvt7seBY8U",
+            .lazy = true,
+        },
+        .grammar_purescript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/bb7ec5e7b9b2dcb0e0d6b98c129bd2e9dd340506.tar.gz",
+            .hash = "N-V-__8AAK4ChgC9WlxQxE4rHZoHAc1itmodZGF2d0NWG1Hb",
+            .lazy = true,
+        },
+        .grammar_pymanifest = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/dc30608a9a1271855c6b0aed853829550c30c96f.tar.gz",
+            .hash = "N-V-__8AAA64AQCEKO3pu9eFaxGbcEyOvLlPKlKOF9zZ32oe",
+            .lazy = true,
+        },
+        .grammar_python = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/467ef64ac547c97c4a2be8b1c0be932c2f433c4d.tar.gz",
+            .hash = "N-V-__8AAD1JOADQgItHD1OE35niA4w_erpzbGAJDr7RjYHY",
+            .lazy = true,
+        },
+        .grammar_ql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a6a599abcaa6a4f858f674b3c73a9760b237fb3c.tar.gz",
+            .hash = "N-V-__8AAO5oJwDJxbNgV4oo4kOg-10b6D163YI4T4SGaRuK",
+            .lazy = true,
+        },
+        .grammar_qmldir = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/670a286e195c68502227a086845c4ac2526fc2b9.tar.gz",
+            .hash = "N-V-__8AAMkeAQAzLk6zpXplLcuUOYnl6viU0F9Q959vY3Tn",
+            .lazy = true,
+        },
+        .grammar_qmljs = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/319dfb064353460b1bc603dfdfdc8441ed8e82e4.tar.gz",
+            .hash = "N-V-__8AAGNanQD6wPREEvaMNZSM-ZTsC8bR5aJaa7vN0IPw",
+            .lazy = true,
+        },
+        .grammar_query = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ba2e6ad162dd026143300b766687d5f43b80c740.tar.gz",
+            .hash = "N-V-__8AAJd7AgAII5hxTqsTrVM0L86pvwzjTat9EmrsOW5_",
+            .lazy = true,
+        },
+        .grammar_r = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e87a84d91eb946ee169f5c674d502454ba9a59f1.tar.gz",
+            .hash = "N-V-__8AAA-DQABezj2yHCAZqZ1iukNAgTcRRRaf8rYH1GTX",
+            .lazy = true,
+        },
+        .grammar_racket = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2c1fb82c25e3fca87484cb51fe3c9d806595f4d8.tar.gz",
+            .hash = "N-V-__8AAI5iDQB1s5l4m3zo0Lrxy-QQT-vFnvk-YQ5SAhON",
+            .lazy = true,
+        },
+        .grammar_ralph = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e2d170629b0e4bdd73c57ed86f965f89773c4255.tar.gz",
+            .hash = "N-V-__8AAGgQHQBvoGTFqU7NifkxG1CITudYnEIKjG69teig",
+            .lazy = true,
+        },
+        .grammar_rasi = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a71bdb1304c7e470eac78c9905f07dd7a7f77e52.tar.gz",
+            .hash = "N-V-__8AAAxtBQCVvDl_y-wiLSDKgS40udzI7lHLVfHv-0vJ",
+            .lazy = true,
+        },
+        .grammar_razor = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c43488613df63a6651c591ba9e82197a7955193b.tar.gz",
+            .hash = "N-V-__8AALyqKQNVanIWB-ChWndsym3WzpN3jJusOnAJeNAv",
+            .lazy = true,
+        },
+        .grammar_rbs = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2c55297d446c19dfa0ff45910eb03a53b2cebc44.tar.gz",
+            .hash = "N-V-__8AAD6HDQBF7yQ3pmk8TLJjH0-qU-UcFqMaqZS_rCJf",
+            .lazy = true,
+        },
+        .grammar_re2c = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/851a3b1fc39f23ec5b9d53c78a0c832e44ac0e59.tar.gz",
+            .hash = "N-V-__8AAHZvCAAurroT4V6bxHeUnjf0_lQVUW1LT5mE413w",
+            .lazy = true,
+        },
+        .grammar_readline = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2691346fc915464c214a45d2d4e7d2bafa379518.tar.gz",
+            .hash = "N-V-__8AABzUBgC1odXX9b-VOkVtLI9RANzW_udmlkiw8Sz6",
+            .lazy = true,
+        },
+        .grammar_regex = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a3ec208f0c5eeab5b06e6fb7c04c110bbf3dfef8.tar.gz",
+            .hash = "N-V-__8AABM7AwDHkIyhcfsjFsrl6cxaaUqZJxJyQrSVU50E",
+            .lazy = true,
+        },
+        .grammar_rego = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f15dd46d2665b08a98c53581396ef38620c6a253.tar.gz",
+            .hash = "N-V-__8AACb9EgC_ZtJJrRfIIO2Q5U0KYQqcmFWxr4569WzZ",
+            .lazy = true,
+        },
+        .grammar_requirements = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/649d4c6863d0a6d47b0c60c901f0a2dcc4581915.tar.gz",
+            .hash = "N-V-__8AABTWAwBZjtz9PWNF5igJNESDZw8NkA2V50186x97",
+            .lazy = true,
+        },
+        .grammar_rescript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/fa54687b498dad3ab708a2706383fd7206ab0749.tar.gz",
+            .hash = "N-V-__8AABeqdgCRFSpzNvIE0u-S9RTt0wWHvxZ-ieJ1U4y4",
+            .lazy = true,
+        },
+        .grammar_rifleconf = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/45ee086d12473616581fb94f72321551b29e28d3.tar.gz",
+            .hash = "N-V-__8AAJ1jAQD23fje-nykwhj6WlLzgsfhRIce7kDj_q4Y",
+            .lazy = true,
+        },
+        .grammar_rnoweb = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/abe48ff484019cbe7cfefcc62acb0829685699bf.tar.gz",
+            .hash = "N-V-__8AAEebAAAbnrQbllQi1lpqwrYphge9MKNehXE9oQme",
+            .lazy = true,
+        },
+        .grammar_robot = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2f055ab383ce58860832ccf48b2715a5a2caacdb.tar.gz",
+            .hash = "N-V-__8AADyGBgAukPgqosF5eBTqA0vBkHVDmy9HrIEy4AlO",
+            .lazy = true,
+        },
+        .grammar_robots_txt = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d24a00dd6b91ff0497636a3a11c2835c66600e94.tar.gz",
+            .hash = "N-V-__8AAAVzAQBaN4ArQJCrtpGeBqAfbIKSrqR4jax9Hhao",
+            .lazy = true,
+        },
+        .grammar_roc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/360c4d5e7be1aef3191dbb07ac3f58e6ae1d2e23.tar.gz",
+            .hash = "N-V-__8AANBXSgCo6bfovcNHNvIGAuzeQ5aSMx69_MOTBB-T",
+            .lazy = true,
+        },
+        .grammar_ron = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/1434db107f131428d605d82bb38350c620b1a7ec.tar.gz",
+            .hash = "N-V-__8AANddAgBtb7kWAgbtEadKXHGmNfS_SJVrTmuKZ_0L",
+            .lazy = true,
+        },
+        .grammar_rst = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/08e60298eaccb974c051d881c379467b1d6f609f.tar.gz",
+            .hash = "N-V-__8AABgcBwAlSWzIQ-A9f8OYTz50bWmFsQ_b2tqhX9vP",
+            .lazy = true,
+        },
+        .grammar_ruby = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/885a2cb6cb1776937d28ac0f8fb14e41c5ad36ff.tar.gz",
+            .hash = "N-V-__8AAEwW7gBj1PbWNwtdPmjndOU7TzgvfhdgTa3gqCGn",
+            .lazy = true,
+        },
+        .grammar_runescript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/96c0fc2a8f881d20b3bf9968859110c80664c56d.tar.gz",
+            .hash = "N-V-__8AAFSfBACUJ8kroH7kLsTHUjDGwR0JJft3VRiZoeZd",
+            .lazy = true,
+        },
+        .grammar_rust = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3a7082f61c930e4ffe5660207924b1a9c57f4eb0.tar.gz",
+            .hash = "N-V-__8AADDXaAC1mLzx5Lh-z4vnbyytsOl8Y5cR8YiF1Fev",
+            .lazy = true,
+        },
+        .grammar_scala = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d2cb78ce217279a523126cad4f50cd497eb811c8.tar.gz",
+            .hash = "N-V-__8AACBGqgHHtsqlnPBf8jzVUEmJB7f1DoM4aMoT82h3",
+            .lazy = true,
+        },
+        .grammar_scfg = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/103e60e5c6cff52a4de6d0afcb4410219af8f5a6.tar.gz",
+            .hash = "N-V-__8AAO3wAACTA2D2ryedMw5qCmt783dGMTX8PfL63HS7",
+            .lazy = true,
+        },
+        .grammar_scheme = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/71798288b613d689185f7b6fdb66ba21b808364a.tar.gz",
+            .hash = "N-V-__8AAF2DDgDRPVItXzkgMRP-L24SLRKgIqnRshtBnDoz",
+            .lazy = true,
+        },
+        .grammar_scss = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/6ba1e0cb431e917d14ca699abdfa001c896b5d3b.tar.gz",
+            .hash = "N-V-__8AAMxwCgAYzihZz8Mn3MWA1Odty4PPCsPS5Nq_1TI6",
+            .lazy = true,
+        },
+        .grammar_sflog = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/897503b81d435e594fe7952b628f7ae87b3fe602.tar.gz",
+            .hash = "N-V-__8AAHN5lQDn3X1tNVP_q8tm-Qa81JB-1-pEz8BlvOTa",
+            .lazy = true,
+        },
+        .grammar_slang = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/327843f20ff82770b747577d0a3372fd3795c864.tar.gz",
+            .hash = "N-V-__8AAKHEpQF5UN74bufY6uNtRoQqikE9bWsJmUZbyvoE",
+            .lazy = true,
+        },
+        .grammar_slim = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/39a83ea2a12271d67fd85244f39e4e97b666f572.tar.gz",
+            .hash = "N-V-__8AANxgDADXszab7-zsabfbnps7AiNOWoQVIy9CENMt",
+            .lazy = true,
+        },
+        .grammar_slint = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/62235a162c9b9b7d2bec104599bbd62202878802.tar.gz",
+            .hash = "N-V-__8AAOKSHwCAdVWJ_U0fOffbPeriZ3fgEV7gDMFzAS6l",
+            .lazy = true,
+        },
+        .grammar_smali = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e1ca37d87c96c59c6aef36f4974914b425fd824f.tar.gz",
+            .hash = "N-V-__8AAKsaGwAiZBsGOzznZgwQJDUVc9YDM7Hd1BvA12j2",
+            .lazy = true,
+        },
+        .grammar_smithy = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3cb023880030f4ba84b8385b710387a3205ead55.tar.gz",
+            .hash = "N-V-__8AADgFBgCE7AwdHPrieAjuEEE89nBOSM3G8KlqW2nJ",
+            .lazy = true,
+        },
+        .grammar_snakemake = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ce28a1ba8a780fba2573dc51dbf041c8181c50e2.tar.gz",
+            .hash = "N-V-__8AALWJTACM9iZ2ChfrrpaztiGa5HOvDtIYfGdo-9tG",
+            .lazy = true,
+        },
+        .grammar_snl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d7ab6cd87107c006def969cd16a288aa1f8711d8.tar.gz",
+            .hash = "N-V-__8AAAVwJgDEG6f2ccbs48OJbLLqjzOcNrnVS_6GW6aY",
+            .lazy = true,
+        },
+        .grammar_solidity = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8060e7ccb71dc75868739c92687f2654cd96c4a6.tar.gz",
+            .hash = "N-V-__8AANlbKwAz69MYumoGxo4adyW4kktM4MDt6vq_Y7ML",
+            .lazy = true,
+        },
+        .grammar_soql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/897503b81d435e594fe7952b628f7ae87b3fe602.tar.gz",
+            .hash = "N-V-__8AAHN5lQDn3X1tNVP_q8tm-Qa81JB-1-pEz8BlvOTa",
+            .lazy = true,
+        },
+        .grammar_sosl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/897503b81d435e594fe7952b628f7ae87b3fe602.tar.gz",
+            .hash = "N-V-__8AAHN5lQDn3X1tNVP_q8tm-Qa81JB-1-pEz8BlvOTa",
+            .lazy = true,
+        },
+        .grammar_sourcepawn = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/43cba4fb594b9335167b392ba1850bb9d48beddb.tar.gz",
+            .hash = "N-V-__8AAKmcPQBhphxQ_cnbxuctgRwzatbZuaotX5UcB4Jl",
+            .lazy = true,
+        },
+        .grammar_sparql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/55246fdea3881fa9abc3d6911443d32f56217af7.tar.gz",
+            .hash = "N-V-__8AAB4lIgBM3ve9FyLkvACB8mmQhHr7_MTfXcwndsCJ",
+            .lazy = true,
+        },
+        .grammar_sproto = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/265b77fd7a5ef7f330bec23f49e937f1e9ba867f.tar.gz",
+            .hash = "N-V-__8AAMdGAQAv-g08WLIPTxPyN3qyJ9LvuiCSTSjxthpb",
+            .lazy = true,
+        },
+        .grammar_sql = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f5ef3aa5a810ac31c3296120a644b87fe483addd.tar.gz",
+            .hash = "N-V-__8AAK-ciAJHVYD3KaUhhPAPsAs4fD-qygfiqJ9uzMYm",
+            .lazy = true,
+        },
+        .grammar_squirrel = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2395730bff320e5ff87ca9a1994befbbf7fd4dbf.tar.gz",
+            .hash = "N-V-__8AAAReMgC0QrdTLtXjO8MNHf4QKa8Orf39lQUwL94y",
+            .lazy = true,
+        },
+        .grammar_ssh_config = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e9f69e20e258a3604cc990ef89999fc4ab5f9f96.tar.gz",
+            .hash = "N-V-__8AAJfIFQAM_QjsLPivvkyseF-NrLsDPs51Zzzhcc40",
+            .lazy = true,
+        },
+        .grammar_starlark = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/037e217403da2710906eaedbb3e4c137b06bf396.tar.gz",
+            .hash = "N-V-__8AAHy4KQC-u9m5Q2kN9BMBD5lK2c_t7_do6iRz2vZf",
+            .lazy = true,
+        },
+        .grammar_strace = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c4543782851f3d9d5ec917125056931a91735262.tar.gz",
+            .hash = "N-V-__8AAEp4AgA1uMwrQ6oiipdoZLFSLPVlJvYUoQBonX_C",
+            .lazy = true,
+        },
+        .grammar_styled = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c0ff12a68455d0330261824ff8b7c8378099c5c7.tar.gz",
+            .hash = "N-V-__8AAO4HCQBcaaPF3bN49wqFb2w6ZzxEHoN4BWHEaB63",
+            .lazy = true,
+        },
+        .grammar_supercollider = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/9f75a7f60ac84a56f3a6489f74bf37d3e59e74f2.tar.gz",
+            .hash = "N-V-__8AAABwFQDDni4245hNlT5kvB7Z3lFr_j0zQVtY2SZH",
+            .lazy = true,
+        },
+        .grammar_superhtml = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c4e0d8c6b40e77ec01ae3f206c90b245a4015d0a.tar.gz",
+            .hash = "N-V-__8AAPnbAQAVcWzeDOmBV_lUsq5gYs3XFyyVs1ufMi1r",
+            .lazy = true,
+        },
+        .grammar_surface = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/59832da607089d7f18ab969beb4dc27768ebb110.tar.gz",
+            .hash = "N-V-__8AADtaAgDuZGXmfveuf0Uigk_SHX--yQ8J8CqZaAob",
+            .lazy = true,
+        },
+        .grammar_svelte = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/179ca8b5e7d23283bf1fe1abed3b58f4eae47443.tar.gz",
+            .hash = "N-V-__8AAOpaBQBFjAsLX_4vmnFnPT_3u-KkmA-uJmvFnOMd",
+            .lazy = true,
+        },
+        .grammar_sway = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ffd132e964c13152aeef1d153242fc068c548d3b.tar.gz",
+            .hash = "N-V-__8AAAvONQD9ZIQu0sKbMHKBJShGbyXZWOzIorkXlsxy",
+            .lazy = true,
+        },
+        .grammar_swift = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a74a0eeb9898ae4c476062e4feee816103ccd06a.tar.gz",
+            .hash = "N-V-__8AAHvAUQGxclhkQiKD78mwbb0rFtMm9kTZg2MMqHpV",
+            .lazy = true,
+        },
+        .grammar_sxhkdrc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f0e44511c2fd16a787a554fd799b567182bf64e9.tar.gz",
+            .hash = "N-V-__8AANw9AQD5nr4rLiStAt-Oyt7ZKcwmlMHFrs9YYhc_",
+            .lazy = true,
+        },
+        .grammar_systemtap = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/e62ce013c20a34ef325b278362b479b339c4d7eb.tar.gz",
+            .hash = "N-V-__8AABa8GQB01bNulIQAgg9eYYeM8epz545OWujCVC-t",
+            .lazy = true,
+        },
+        .grammar_systemverilog = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c26277ddfb415a55f0f8406299f9172a8ab4fc7b.tar.gz",
+            .hash = "N-V-__8AALE5CQTVWzrk3Go-suUUVyic32IIazEB0FpR81dk",
+            .lazy = true,
+        },
+        .grammar_t32 = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a2c3ec30894a037089d5668abd328b7c6bc34e62.tar.gz",
+            .hash = "N-V-__8AAMJJWADHaAF6n-L_n1Rp2rwsbBnZhPtP18CklKdP",
+            .lazy = true,
+        },
+        .grammar_tablegen = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a5bf120bb15ca3c6530366f2835873da09230ec0.tar.gz",
+            .hash = "N-V-__8AAPKfCADpyegoV1wicudIDvUWE8Tg1E5P6j_OGbSW",
+            .lazy = true,
+        },
+        .grammar_tact = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/079d7cb5bcbab0fdd0f2f386d28293d471faf081.tar.gz",
+            .hash = "N-V-__8AAIurCwBR0TojbXcQvfjwB3RxDT2vfKsCTyUWdaEp",
+            .lazy = true,
+        },
+        .grammar_tcl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8f0b8c85c2eb64b6b003f02bb4d0988f80a2b522.tar.gz",
+            .hash = "N-V-__8AAHpYCAC8jqzvM5dMZqT2RRKO52L39Ytqn1JhumRg",
+            .lazy = true,
+        },
+        .grammar_teal = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/da0bb4a530954b13ca1be66dec63cfdc3a162dd0.tar.gz",
+            .hash = "N-V-__8AAOXWDwBlGn9ZFl1hChcI0eyt6MSWP8s2_lsvhQMD",
+            .lazy = true,
+        },
+        .grammar_templ = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c2c3188904b34002483c83c69ceace21ff3d58f2.tar.gz",
+            .hash = "N-V-__8AAGkPMwDI38BZ6nN7O2CJPhtvRSkiJQ0ekG2l0IBH",
+            .lazy = true,
+        },
+        .grammar_tera = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d00af5e4b301e9d89ce850413b0d7271da1d0840.tar.gz",
+            .hash = "N-V-__8AAPk5BgDIPBQyvJj7MdHnotyELAxYWVJvHHuUpIWg",
+            .lazy = true,
+        },
+        .grammar_terraform = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/68b4b7a9ab04e5711597412f8ba50f0a4e07918a.tar.gz",
+            .hash = "N-V-__8AALTxCgD0O41s1_A-6hGm9khMhD3_ANM65BDRx73L",
+            .lazy = true,
+        },
+        .grammar_textproto = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/aff676f189ebfb682ec314a9aa5fe94af593082a.tar.gz",
+            .hash = "N-V-__8AAEIeAgCmdTI0unafeAkGUMQZH1eq2VCwljQGGKEw",
+            .lazy = true,
+        },
+        .grammar_thrift = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/7026233c19e7a7913cbd29573bf11feb48f0fede.tar.gz",
+            .hash = "N-V-__8AAOzhDABo7WqS0WtS39iw0gKd03ICCKB3n6Rmtgr4",
+            .lazy = true,
+        },
+        .grammar_tiger = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a7eeeeeb88653b4693f90a71b8b38ad53cba07d8.tar.gz",
+            .hash = "N-V-__8AAMzPBQCToAyhg6LArxWT_G9D3C2YK5yn_ZW3bsqv",
+            .lazy = true,
+        },
+        .grammar_tlaplus = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/825b30437eacabcbd5465bda9681f97f87cabe60.tar.gz",
+            .hash = "N-V-__8AACKFOwLTfAe16CvRqSAKWfMExOZrDcDUY-_Rlna3",
+            .lazy = true,
+        },
+        .grammar_todotxt = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8324d9d6ba09c434a1090fe1767297b3083d3afe.tar.gz",
+            .hash = "N-V-__8AAAuAAACXDxBEkWtoz4X6SOd46_GtMbCRUKmcn1zK",
+            .lazy = true,
+        },
+        .grammar_toml = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2cd08d2bcea892e8722f3d1f50b2e24aa7668b6b.tar.gz",
+            .hash = "N-V-__8AAObJAgACeMlpJqIFxBA_knz8fiaDvuPj9RwYlPAZ",
+            .lazy = true,
+        },
+        .grammar_tsv = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b2f20456410d6ef148f45a706754b182d45fbc20.tar.gz",
+            .hash = "N-V-__8AAORAAgA-XsDSwJZzajZ8u1SAcaIjXD8rLtHDOcCe",
+            .lazy = true,
+        },
+        .grammar_tsx = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d5aa475f39358b4bd0827026b41e844e547e70d2.tar.gz",
+            .hash = "N-V-__8AAHQQGAFtlM50twZkoSoFdn0ghhr7T4zit3NngZsf",
+            .lazy = true,
+        },
+        .grammar_turtle = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/dfebec5f5a8bc704b50ae75dcb7ac27d39c603af.tar.gz",
+            .hash = "N-V-__8AAPd-AwBC2e5UWTB55Gzrf18WZvhcCzJlLC6zlNpZ",
+            .lazy = true,
+        },
+        .grammar_twig = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/8e6d8c67a4d5737ea7e4820e741bafc65dc9cd86.tar.gz",
+            .hash = "N-V-__8AAHuDCwA3HUvjQKko85qAA8TJSekJAfB6FTsX4NLs",
+            .lazy = true,
+        },
+        .grammar_typescript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d5aa475f39358b4bd0827026b41e844e547e70d2.tar.gz",
+            .hash = "N-V-__8AAHQQGAFtlM50twZkoSoFdn0ghhr7T4zit3NngZsf",
+            .lazy = true,
+        },
+        .grammar_typespec = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/212829e14d3eba56a37a0b089692632ceac0db51.tar.gz",
+            .hash = "N-V-__8AACeNEQDLlPJUtTpwX_5yJUCIq2aj_cO2R71osDbX",
+            .lazy = true,
+        },
+        .grammar_typoscript = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/63574f0d235a4ac5123f31fa765de6a4fdc43ce7.tar.gz",
+            .hash = "N-V-__8AAJVcDQBPuQ9XMfZ6ZzyjONJKiBwkDdgRX6-zamgl",
+            .lazy = true,
+        },
+        .grammar_typst = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3d7ff3f50ddd2e421fd5b46ba5261fac1c14c89c.tar.gz",
+            .hash = "N-V-__8AAGy8UACBo0_PoFadH6C2jYfBAIxnu2bwKb8VXuhZ",
+            .lazy = true,
+        },
+        .grammar_udev = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/04bb49c15136ba180fb75b7a39a8b567d2f3a578.tar.gz",
+            .hash = "N-V-__8AAM-zAwCOiIB524ToSEzoEkXZfYTK66CdJ0PxbR_e",
+            .lazy = true,
+        },
+        .grammar_ungrammar = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/278b11c5f7ed08ec3c1a190f1ef6cc66a712f095.tar.gz",
+            .hash = "N-V-__8AAPWeAAC7X4oNqsZWU8Uf-TptF0775xWodhPwNZ2R",
+            .lazy = true,
+        },
+        .grammar_unison = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d35036963736de001bc71a6478616419232749c2.tar.gz",
+            .hash = "N-V-__8AACOecgDKjhUL2fgbHrGRKxh5UZowRWtQaxXMQGXS",
+            .lazy = true,
+        },
+        .grammar_usd = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b00527b82bd393911a3a498c6dd5f9f30a4ae786.tar.gz",
+            .hash = "N-V-__8AANOiCgA27bnxd1edtPw4-aeQG2PvFQAcRt5BV5J5",
+            .lazy = true,
+        },
+        .grammar_uxntal = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/19fa7186f42a33417e7cfec2cd00e70d1725aedf.tar.gz",
+            .hash = "N-V-__8AAKOcBgBDg20VpQgXqKHs5ViuZRbWu9fLS_YehvMF",
+            .lazy = true,
+        },
+        .grammar_v = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/fbb8f3931de53f84c09771d6afc3cc094969809a.tar.gz",
+            .hash = "N-V-__8AACJUwgBrLbjqhwPzVg3aDtISys5NbTfhDQyxfFla",
+            .lazy = true,
+        },
+        .grammar_vala = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/956a6aa21c0b8a2637c04d6b27784390ccc7c20e.tar.gz",
+            .hash = "N-V-__8AAM7sPgDdj7zu_rpwTKFKK1N6tUMbqjzr1ggEM7EW",
+            .lazy = true,
+        },
+        .grammar_vento = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0db5ec2facc645d5d95bfbf2e62acaaa806bcea6.tar.gz",
+            .hash = "N-V-__8AAPuTAwDRSe1g_g_-ABKu3nL7QWqvSn04QNvwJxrV",
+            .lazy = true,
+        },
+        .grammar_vhdl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/1949eb6cee0a0292dfdfb8c489b6c4b017c1bf8a.tar.gz",
+            .hash = "N-V-__8AACG2pwBPkyfS3F-mMEEwLWrIILlxMhm6-3Wes4QA",
+            .lazy = true,
+        },
+        .grammar_vhs = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/d42ad80381a90c53f8c3d75fa2bbf65e949b8dca.tar.gz",
+            .hash = "N-V-__8AAKknBAA7BdPJhRiU1NfrQvEK90_ZHzWRh2E74I5N",
+            .lazy = true,
+        },
+        .grammar_vim = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/259ad79d31abc3896eb5222b87a613141b2e212f.tar.gz",
+            .hash = "N-V-__8AAHudUgDOwGRH2Ji44WXDHeRNLWTUP4r6xVE_YFiZ",
+            .lazy = true,
+        },
+        .grammar_vimdoc = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ac0575cb0bbc8198895850ccad3b81466274dfaa.tar.gz",
+            .hash = "N-V-__8AAGNUCQDMKyon5KzDzCEgYZI1U6jCCDc69YHOtdxC",
+            .lazy = true,
+        },
+        .grammar_vrl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/22710a0cb51af2fd42b82c64b5c1569930045b24.tar.gz",
+            .hash = "N-V-__8AAGYECAAiR7M1t5idfEGm7Cxgql98ys6UFowjXfSn",
+            .lazy = true,
+        },
+        .grammar_vue = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4b0e6692d27002c134e31fe5c83e4406760c9cde.tar.gz",
+            .hash = "N-V-__8AALAvAwAw2swYMjazxUHXXbt5yCq0ZTI_-uejjIIZ",
+            .lazy = true,
+        },
+        .grammar_wgsl = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/223f2105613ca782bc0ebd40917495ec7d5ffc8e.tar.gz",
+            .hash = "N-V-__8AAHRACAAwDgfFMG-pSRX_0NDJzzct9ry695tWoHTa",
+            .lazy = true,
+        },
+        .grammar_wgsl_bevy = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0bc5db7c823627c141e53aee022b83211f48275f.tar.gz",
+            .hash = "N-V-__8AABcvCgBTGiWIJem6MQm2eKOZstI0PdwOHlGXrhZj",
+            .lazy = true,
+        },
+        .grammar_wing = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/540085032891fa82dedd73f9507ee61be5db0810.tar.gz",
+            .hash = "N-V-__8AABI6HACGtF42-AN7HIiRt3GTQYsPQCdhwg3N4fUf",
+            .lazy = true,
+        },
+        .grammar_wit = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/b072b72fdb6f1f77163d31bd8df6b5b560bf56b1.tar.gz",
+            .hash = "N-V-__8AAF7MBQA7R3A337Y-1Z0ez7wAwsJJc03OdcRnf_sC",
+            .lazy = true,
+        },
+        .grammar_wxml = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/dfe3a9e6bf0d3b5e6158b625f4f76a93bbecdebc.tar.gz",
+            .hash = "N-V-__8AACq4AgCgAvnV4tYVNltgaQcaXVH1MzZ425su77Lz",
+            .lazy = true,
+        },
+        .grammar_xcompose = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/84e1451544ed6a4db8a798390e8dede6f3236a91.tar.gz",
+            .hash = "N-V-__8AAFQOAQC6Gpmbajoh0Pz5PhLONzNSP9wJRph6-AtE",
+            .lazy = true,
+        },
+        .grammar_xml = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/c5b37f5b6f025809740023e984bf61a733377e1c.tar.gz",
+            .hash = "N-V-__8AAHZACQAKsFkN4EWIWreax1oIlEY4qNoV7itE9Lsp",
+            .lazy = true,
+        },
+        .grammar_xresources = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/cde2b1eb5759c317df84fd58b15dc20d56a244ce.tar.gz",
+            .hash = "N-V-__8AAOmJAgBpqIqAtZqTxmHahsmHtjAxw1wSXA42J2Mk",
+            .lazy = true,
+        },
+        .grammar_yaml = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/30500ab09595bc278edb2386f446eb2a438089a3.tar.gz",
+            .hash = "N-V-__8AAHTDFwAxjLD5jkEFrcFXeCAH_vOLRJp-y5TPIwA2",
+            .lazy = true,
+        },
+        .grammar_yang = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/ee1a99660b514522b7e6e7fbd06e83867a4848c4.tar.gz",
+            .hash = "N-V-__8AAI9fBwCxUNFW0m5ntYz6j3viu2LOzfQmevORJJ7p",
+            .lazy = true,
+        },
+        .grammar_yuck = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/62b64aabd360828ac760af4b5371ba431716723d.tar.gz",
+            .hash = "N-V-__8AAMl4AwBJEE0vHkTPdOyOYPG2kbOfIAIN6Zo1Y4O1",
+            .lazy = true,
+        },
+        .grammar_zig = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/82d423d77d8fdcf1cb30026afd2e054aa34d56a8.tar.gz",
+            .hash = "N-V-__8AAPprXADrzoaYecXDGfqw1IBmLyjfV8f0Egu8MxFB",
+            .lazy = true,
+        },
+        .grammar_ziggy = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3c85349a6a5733e32b589ecaa1e94048f4b6494d.tar.gz",
+            .hash = "N-V-__8AAOZ2AwDuTKxI0CLrwPRxYkftOFoxUoJVJM4NWorA",
+            .lazy = true,
+        },
+        .grammar_ziggy_schema = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/3c85349a6a5733e32b589ecaa1e94048f4b6494d.tar.gz",
+            .hash = "N-V-__8AAOZ2AwDuTKxI0CLrwPRxYkftOFoxUoJVJM4NWorA",
+            .lazy = true,
+        },
+        .grammar_zsh = .{
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a29a8f65608eff9ef8a79ec520073c8c92219e2a.tar.gz",
+            .hash = "N-V-__8AAAl7IQKr2JFZhkfVjiItB0SJPHdjxvcnGdg8hHKw",
+            .lazy = true,
+        },
+        // END GENERATED
+    },
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "libs",
+        "src",
+        "grammars",
+        "LICENSE",
+        "LICENSES.md",
+        "README.md",
+        "CHANGELOG.md",
+        "UPSTREAM.md",
+    },
+}

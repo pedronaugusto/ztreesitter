@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  ZIG_VERSION: 0.16.0
+  # build.zig's representative set, the grammars `zig build test` compiles.
+  GRAMMARS: bash c c_sharp cpp css html javascript json lua markdown markdown_inline python regex rust swift tsx typescript zig
+
+jobs:
+  # Debug catches safety faults, with the runtime's C under the sanitizer;
+  # ReleaseSafe checks optimized code. Grammar C is never sanitized.
+  # The test step also builds and runs the example.
+  test:
+    name: test (${{ matrix.os }}, ${{ matrix.optimize }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        optimize: [Debug, ReleaseSafe]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      # While the repository is private Zig cannot download the mirrors, so
+      # they go into its cache from this clone. Remove at the public cut.
+      - name: Seed grammar mirrors
+        shell: bash
+        run: ci/seed-mirrors.sh $GRAMMARS
+      - name: Test — ${{ matrix.optimize }}
+        run: zig build test -Doptimize=${{ matrix.optimize }} -Dsanitize_c=${{ matrix.optimize == 'Debug' }}
+
+  # Zig's default Windows ABI is gnu; on a Windows runner the MSVC ABI is
+  # native, so the suite runs there too.
+  windows-msvc:
+    name: test (windows-latest, MSVC ABI)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Seed grammar mirrors
+        shell: bash
+        run: ci/seed-mirrors.sh $GRAMMARS
+      - run: zig build test -Dtarget=x86_64-windows-msvc
+
+  # Formatting and source policy read the same files on every host.
+  source:
+    name: source checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Formatting
+        run: zig fmt --check build.zig build.zig.zon src tests examples bench ci grammars
+      - name: Casts out of the type system carry their reason
+        run: python3 ci/casts.py
+      - name: Seed grammar mirrors
+        run: ci/seed-mirrors.sh $GRAMMARS
+      - name: Source layers and import boundaries
+        run: zig build check-imports
+      - name: README usage block
+        run: ci/check-readme.sh
+
+  # Targets the native jobs do not execute, compiled with the same grammars.
+  cross:
+    name: cross (${{ matrix.target }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - aarch64-linux-gnu
+          - x86_64-linux-musl
+          - aarch64-windows-gnu
+          - x86_64-macos
+          - aarch64-macos
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+      - name: Seed grammar mirrors
+        run: ci/seed-mirrors.sh $GRAMMARS
+      - run: zig build check -Dtarget=${{ matrix.target }}
+
+  # libs/ is the pinned upstream tag, unmodified. Needs network.
+  vendor:
+    name: vendor integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: ci/verify-vendor.sh
