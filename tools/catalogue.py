@@ -57,7 +57,7 @@ EXCLUDED = {}
 # reported as untested until the all-grammars job has compiled them.
 TESTED = {
     "bash", "c", "c_sharp", "cpp", "css", "html", "javascript", "json", "lua",
-    "markdown", "markdown_inline", "python", "regex", "rust", "swift", "tsx",
+    "markdown", "markdown_inline", "python", "regex", "rust", "scss", "swift", "tsx",
     "typescript", "zig", "ecma", "jsx", "html_tags",
 }
 

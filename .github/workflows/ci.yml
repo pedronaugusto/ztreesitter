@@ -16,7 +16,7 @@ permissions:
 env:
   ZIG_VERSION: 0.16.0
   # build.zig's representative set, the grammars `zig build test` compiles.
-  GRAMMARS: bash c c_sharp cpp css html javascript json lua markdown markdown_inline python regex rust swift tsx typescript zig
+  GRAMMARS: bash c c_sharp cpp css html javascript json lua markdown markdown_inline python regex rust scss swift tsx typescript zig
 
 jobs:
   # Debug catches safety faults, with the runtime's C under the sanitizer;

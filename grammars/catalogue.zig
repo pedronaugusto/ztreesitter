@@ -6716,7 +6716,7 @@ pub const grammars: []const schema.Grammar = &.{
         .licence_note = "",
         .notes = "",
         .requires = &.{"css"},
-        .status = .untested,
+        .status = .ok,
         .reason = "",
         .queries = .{
             .highlights = &.{ .{ .source = .nvim, .path = "runtime/queries/css/highlights.scm" }, .{ .source = .nvim, .path = "runtime/queries/scss/highlights.scm" } },

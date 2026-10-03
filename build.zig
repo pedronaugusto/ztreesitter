@@ -9,7 +9,8 @@ const schema = @import("grammars/schema.zig");
 pub const representative = [_][]const u8{
     "bash",       "c",    "c_sharp", "cpp",      "css",             "html",
     "javascript", "json", "lua",     "markdown", "markdown_inline", "python",
-    "regex",      "rust", "swift",   "tsx",      "typescript",      "zig",
+    "regex",      "rust", "scss",    "swift",    "tsx",             "typescript",
+    "zig",
 };
 
 pub fn build(b: *std.Build) void {

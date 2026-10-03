@@ -180,10 +180,11 @@ languages and queries.
 
 `zig build test` runs the unit tests and the grammar tests with the
 representative set: bash, c, c_sharp, cpp, css, html, javascript, json, lua,
-markdown, markdown_inline, python, regex, rust, swift, tsx, typescript and zig.
+markdown, markdown_inline, python, regex, rust, scss, swift, tsx, typescript and zig.
 They cover one repository with its own Zig build (c), query inheritance (cpp,
 tsx), the largest parse tables in the set (c_sharp), a generated parser
-(swift), two grammars in one repository (typescript and tsx; markdown and
+(swift), an ABI 13 grammar with a C scanner (scss), two grammars in one
+repository (typescript and tsx; markdown and
 markdown_inline), and injection hosts (html, markdown). `-Dgrammars=a,b` or
 `all` changes the set.
 

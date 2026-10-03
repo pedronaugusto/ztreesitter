@@ -19,6 +19,7 @@ pub const samples = [_]Sample{
     .{ .name = "python", .text = "import os\n\nclass A(Base):\n    def f(self, x: int) -> int:\n        return [i * x for i in range(3)][0]\n" },
     .{ .name = "regex", .text = "^(?:[a-z]+|\\d{2,3})\\s*$" },
     .{ .name = "rust", .text = "use std::fmt;\npub struct P { x: i32 }\nimpl fmt::Display for P { fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, \"{}\", self.x) } }\n" },
+    .{ .name = "scss", .text = "$c: #333;\n@mixin m($x) { margin: $x; }\n.a { &:hover { color: $c; } .b { @include m(2px); } }\n" },
     .{ .name = "swift", .text = "import Foundation\nstruct Point { var x: Int }\nclass Shape: CustomStringConvertible {\n  var description: String { \"shape\" }\n  func area() -> Double { return 0 }\n}\n" },
     .{ .name = "tsx", .text = "export const App = ({ n }: { n: number }) => <div className=\"a\">{n}</div>;\n" },
     .{ .name = "typescript", .text = "interface I { a: string }\nexport class C implements I { a = \"x\"; m<T>(t: T): T { return t; } }\n" },
