@@ -48,7 +48,11 @@ pub fn build(b: *std.Build) void {
     runtime.root_module.addIncludePath(b.path("libs/tree-sitter/lib/include"));
     runtime.root_module.addIncludePath(b.path("libs/tree-sitter/lib/src"));
     for (runtime_macros) |macro| runtime.root_module.addCMacro(macro[0], macro[1]);
-    runtime.root_module.addCSourceFile(.{ .file = b.path("libs/tree-sitter/lib/src/lib.c"), .flags = &.{"-std=c11"} });
+    // Under the sanitizer, one check is left out: query.c copies an empty
+    // string with `memcpy(dst, NULL, 0)` (UPSTREAM.md, known upstream
+    // behaviour), which glibc's headers declare non-null.
+    const runtime_flags: []const []const u8 = if (sanitize_c) &.{ "-std=c11", "-fno-sanitize=nonnull-attribute" } else &.{"-std=c11"};
+    runtime.root_module.addCSourceFile(.{ .file = b.path("libs/tree-sitter/lib/src/lib.c"), .flags = runtime_flags });
     runtime.installHeadersDirectory(b.path("libs/tree-sitter/lib/include"), ".", .{});
     b.installArtifact(runtime);
 

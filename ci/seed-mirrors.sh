@@ -25,7 +25,8 @@ for name in $names; do
     # any commit reachable from a ref, hidden refs included.
     git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch --quiet --depth=1 origin "$sha"
     mkdir "$work/$sha"
-    git archive "$sha" | tar -x -C "$work/$sha"
+    # No line-ending conversion: the hash is of the bytes git stores.
+    git -c core.autocrlf=false -c core.eol=lf archive "$sha" | tar -x -C "$work/$sha"
     hash=$(zig fetch "$work/$sha")
     echo "seed: $name $hash"
 done

@@ -23,6 +23,15 @@ Not compiled: WebAssembly grammar support (`TREE_SITTER_FEATURE_WASM`), which
 needs wasmtime. The five entry points that exist only with it are excluded by
 name in `src/abi_check.zig`.
 
+Known upstream behaviour, recorded rather than patched: `lib/src/query.c`
+(`symbol_table_insert_name`, line 957) copies a query's empty string literal
+with `memcpy(dst, NULL, 0)`. That is undefined behaviour in C before C2y and
+harmless in practice; glibc's headers declare `memcpy`'s arguments non-null,
+so the undefined-behaviour sanitizer stops on it on Linux. With
+`-Dsanitize_c` the runtime is compiled with every check but that one
+(`-fno-sanitize=nonnull-attribute`). Found by CI on 2026-10-03 compiling
+nvim-treesitter's `(#set! conceal "")`.
+
 To re-vendor: replace the three paths from the new tag, update this table,
 the constants at the top of `ci/verify-vendor.sh`, `runtime_version` in
 `src/ztreesitter.zig` and `RUNTIME_VERSION` in `tools/catalogue.py`, then run
