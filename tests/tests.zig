@@ -175,15 +175,16 @@ test "a reader input parses the same tree as a slice" {
     defer a.deinit();
 
     const Pieces = struct {
+        reader: ts.Input.Reader = .{ .read = read },
         text: []const u8,
-        fn read(context: *anyopaque, byte: u32, _: ts.Point) []const u8 {
-            const self: *const @This() = @ptrCast(@alignCast(context));
+        fn read(reader: *const ts.Input.Reader, byte: u32, _: ts.Point) []const u8 {
+            const self: *const @This() = @fieldParentPtr("reader", reader);
             if (byte >= self.text.len) return "";
             return self.text[byte..@min(self.text.len, byte + 5)];
         }
     };
-    var pieces: Pieces = .{ .text = text };
-    var b = try parser.parse(io, .{ .reader = .{ .context = &pieces, .read = Pieces.read } }, null, .{});
+    const pieces: Pieces = .{ .text = text };
+    var b = try parser.parse(io, .{ .reader = &pieces.reader }, null, .{});
     defer b.deinit();
     const sa = try sexp(a.rootNode());
     defer gpa.free(sa);
@@ -334,16 +335,17 @@ test "predicates filter matches: Neovim's dialect on the zig highlights" {
 
 /// A reader over `text` in seven-byte chunks, in `encoding`.
 const Chunks = struct {
+    reader: ts.Input.Reader,
     text: []const u8,
 
-    fn read(context: *anyopaque, byte: u32, _: ts.Point) []const u8 {
-        const self: *const Chunks = @ptrCast(@alignCast(context));
-        if (byte >= self.text.len) return "";
-        return self.text[byte..@min(self.text.len, byte + 7)];
+    fn init(text: []const u8, encoding: ts.Encoding) Chunks {
+        return .{ .reader = .{ .read = read, .encoding = encoding }, .text = text };
     }
 
-    fn input(self: *Chunks, encoding: ts.Encoding) ts.Input {
-        return .{ .reader = .{ .context = self, .read = read, .encoding = encoding } };
+    fn read(reader: *const ts.Input.Reader, byte: u32, _: ts.Point) []const u8 {
+        const self: *const Chunks = @fieldParentPtr("reader", reader);
+        if (byte >= self.text.len) return "";
+        return self.text[byte..@min(self.text.len, byte + 7)];
     }
 };
 
@@ -352,15 +354,15 @@ fn countMatches(g: *const ts.Grammar, text: []const u8, encoding: ts.Encoding, s
     var parser: ts.Parser = .init();
     defer parser.deinit();
     try parser.setLanguage(g.language());
-    var chunks: Chunks = .{ .text = text };
-    var tree = try parser.parse(io, chunks.input(encoding), null, .{});
+    const chunks: Chunks = .init(text, encoding);
+    var tree = try parser.parse(io, .{ .reader = &chunks.reader }, null, .{});
     defer tree.deinit();
     var query = try ts.Query.init(gpa, g.language(), source, .{ .dialect = .tree_sitter });
     defer query.deinit();
     var cursor = try ts.QueryCursor.init(gpa);
     defer cursor.deinit();
     var count: usize = 0;
-    var matches = cursor.matches(io, &query, tree.rootNode(), chunks.input(encoding), .{});
+    var matches = cursor.matches(io, &query, tree.rootNode(), .{ .reader = &chunks.reader }, .{});
     while (try matches.next()) |_| count += 1;
     return count;
 }

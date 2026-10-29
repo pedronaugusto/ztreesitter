@@ -72,14 +72,15 @@ pub const Input = union(enum) {
     /// The whole text, contiguous.
     slice: []const u8,
     /// Text in chunks: a rope, a gap buffer, a file read on demand.
-    reader: Reader,
+    reader: *const Reader,
 
+    /// Embedded in the caller's own state, which `read` finds from the
+    /// pointer it is given with `@fieldParentPtr`.
     pub const Reader = struct {
-        context: *anyopaque,
         /// The bytes starting at `byte`, as many as are contiguous there; an
         /// empty slice at or past the end. `point` is the position of `byte`
         /// and may be ignored. The slice must stay valid until the next call.
-        read: *const fn (context: *anyopaque, byte: u32, point: Point) []const u8,
+        read: *const fn (reader: *const Reader, byte: u32, point: Point) []const u8,
         encoding: Encoding = .utf8,
     };
 
@@ -104,7 +105,7 @@ pub const Input = union(enum) {
                 var filled: usize = 0;
                 var at = start;
                 while (at < end and filled < buffer.len) {
-                    const chunk = r.read(r.context, at, .{});
+                    const chunk = r.read(r, at, .{});
                     if (chunk.len == 0) break;
                     const n = @min(chunk.len, end - at, buffer.len - filled);
                     @memcpy(buffer[filled..][0..n], chunk[0..n]);
@@ -128,7 +129,7 @@ pub const Input = union(enum) {
             .reader => |r| {
                 var at = start;
                 while (at < end) {
-                    const chunk = r.read(r.context, at, .{});
+                    const chunk = r.read(r, at, .{});
                     if (chunk.len == 0) return;
                     const n: u32 = @intCast(@min(chunk.len, end - at));
                     if (!visit(context, chunk[0..n])) return;
@@ -145,14 +146,14 @@ test "Input copies from a slice and from a reader alike" {
     try std.testing.expectEqualStrings("world", (Input{ .slice = text }).copy(7, 12, &buf));
 
     const Pieces = struct {
-        fn read(_: *anyopaque, byte: u32, _: Point) []const u8 {
+        fn read(_: *const Input.Reader, byte: u32, _: Point) []const u8 {
             // Three-byte chunks.
             if (byte >= text.len) return "";
             return text[byte..@min(text.len, (byte / 3 + 1) * 3)];
         }
     };
-    var dummy: u8 = 0;
-    const reader: Input = .{ .reader = .{ .context = &dummy, .read = Pieces.read } };
+    const pieces: Input.Reader = .{ .read = Pieces.read };
+    const reader: Input = .{ .reader = &pieces };
     try std.testing.expectEqualStrings("lo, wor", reader.copy(3, 10, &buf));
     try std.testing.expectEqualStrings("lo,", reader.copy(3, 10, buf[0..3]));
 }

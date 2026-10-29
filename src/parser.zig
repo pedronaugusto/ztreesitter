@@ -124,7 +124,7 @@ const Source = struct {
         const self: *Source = @ptrCast(@alignCast(payload.?)); // aegis: boundary: the runtime hands back the payload it was given: the Source `parse` installed
         const chunk: []const u8 = switch (self.input) {
             .slice => |s| if (byte < s.len) s[byte..] else "",
-            .reader => |r| r.read(r.context, byte, .{ .row = position.row, .column = position.column }),
+            .reader => |r| r.read(r, byte, .{ .row = position.row, .column = position.column }),
         };
         bytes_read.* = @intCast(@min(chunk.len, std.math.maxInt(u32)));
         return chunk.ptr;
