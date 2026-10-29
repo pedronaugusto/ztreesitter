@@ -12,5 +12,6 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add the Zig API: `Parser`, `Tree`, `Node`, `TreeCursor`, `Query`, `QueryCursor`, `Language`, with chunked text input, included ranges, changed ranges, cancellation and a deadline that pauses and resumes a parse.
 - Evaluate query predicates in tree-sitter's dialect and Neovim's, with a Pike VM for both regular expression syntaxes and a Lua pattern matcher; allocate nothing while matching.
 - Collect definitions and references from tags queries.
+- Add `Layers`: a document's trees, the root and one per injection, resolved with Neovim's injection semantics over a wanted range, re-parsed after edits only where touched.
 - Catalogue nvim-treesitter's 320 grammars with `zig build catalogue` (`tools/catalogue.zig`), mirrored in this repository, each a lazy dependency compiled only when named through `addGrammars`, with its queries and licence.
 - Put a Zig allocator behind the runtime with `setAllocator`.

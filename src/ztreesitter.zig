@@ -1,5 +1,6 @@
 //! tree-sitter for Zig: the vendored runtime, a Zig API over it, query
-//! predicates in tree-sitter's and Neovim's dialects, and tags.
+//! predicates in tree-sitter's and Neovim's dialects, tags, and a
+//! document's injected layers.
 //!
 //! Grammars are not part of this module. An application compiles the ones it
 //! wants with `addGrammars` in its `build.zig` and passes the resulting
@@ -18,6 +19,7 @@ const node = @import("node.zig");
 const cursor = @import("cursor.zig");
 const query = @import("query.zig");
 const tags = @import("tags.zig");
+const layers = @import("layers.zig");
 
 pub const Point = types.Point;
 pub const Range = types.Range;
@@ -49,6 +51,12 @@ pub const CaptureEvent = query.CaptureEvent;
 pub const IterateError = query.IterateError;
 pub const Tags = tags.Tags;
 pub const Tag = tags.Tag;
+pub const Layers = layers.Layers;
+pub const Layer = layers.Layer;
+pub const LayersOptions = layers.Options;
+pub const LayersUpdateOptions = layers.UpdateOptions;
+pub const LayersSnapshot = layers.Snapshot;
+pub const InjectionResolver = layers.Resolver;
 
 /// This package's version, from `build.zig.zon`.
 pub const version = options.version;

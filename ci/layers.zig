@@ -38,6 +38,9 @@ pub const layers: []const gantry.rules.Layer = &.{
     .{ .name = "tags", .patterns = &.{
         "src/tags.zig",
     } },
+    .{ .name = "injections", .patterns = &.{
+        "src/layers.zig",
+    } },
     .{ .name = "public", .patterns = &.{
         "src/ztreesitter.zig",
     } },

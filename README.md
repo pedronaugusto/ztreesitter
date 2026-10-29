@@ -2,8 +2,8 @@
 
 [tree-sitter](https://tree-sitter.github.io/) for Zig 0.17: the runtime,
 vendored and built with `zig build`, a Zig API over it, query predicates in
-both the dialect tree-sitter's own bindings use and Neovim's, tags, and a
-catalogue of the 320 grammars nvim-treesitter pins, each compiled only when a
+both the dialect tree-sitter's own bindings use and Neovim's, tags, a
+document's injected layers, and a catalogue of the 320 grammars nvim-treesitter pins, each compiled only when a
 program names it.
 
 ## Usage
@@ -119,6 +119,7 @@ describe definitions only.
 | `Query` | compiled once with its predicates, shared across threads |
 | `QueryCursor` | one thread; `matches` and `captures`, filtered by predicates |
 | `Tags` | definitions and references from a tags query |
+| `Layers` | a document's trees: the root and one per injection; `update`, `edit`, `snapshot` |
 | `Language` | ABI version, symbols, fields; `load` for a shared-library grammar |
 | `c` | every function and type of `api.h` this build compiles |
 
@@ -132,6 +133,21 @@ cancellation points (`error.Canceled`), and a `deadline` stops them with
 editor parses in time slices. Nothing here starts a thread. Parsing many files
 in parallel is an `Io.Group` with a parser and a cursor per task, sharing the
 languages and queries.
+
+`Layers` resolves injections with Neovim's semantics: the language from
+`#set! injection.language`, an `@injection.language` capture (after `gsub!`),
+`injection.self` or `injection.parent`; the ranges from `@injection.content`,
+moved by `offset!`, without named children unless
+`injection.include-children`; one layer per match, or per pattern and
+language under `injection.combined`. An `InjectionResolver` the caller embeds
+in its own state turns a language name into a `Grammar`, so aliases are the
+caller's. `update(io, input, wanted, options)` parses the root, resolves
+injections over `wanted` only (combined ones over the whole document, since a
+partial set would parse another tree), parses the layers that meet it, and
+returns where the layers changed. `edit` records an edit on every tree; the
+next `update` parses again only the layers it touched. One parser per
+language serves every layer of it, nesting stops at `max_depth` (8), and a
+`snapshot` copies the trees for another thread.
 
 ## Design
 
@@ -171,7 +187,7 @@ languages and queries.
 - No WebAssembly grammars: they need wasmtime.
 - No parser generation at build time; generated parsers are committed by the
   catalogue tool.
-- No highlighting, themes or injection layering yet.
+- No highlighting or themes.
 - Tags do not yet apply `strip!` and `select-adjacent!` to documentation, nor
   use a locals query to drop references to local definitions.
 - `lua-match?` and `contains?` read a node's text from a reader input
@@ -195,7 +211,9 @@ markdown_inline), and injection hosts (html, markdown). `-Dgrammars=a,b` or
 Every selected grammar must load, parse a sample without errors and compile
 every query in its dialect. Other tests check incremental parsing against
 fresh parses over 200 random edits, included ranges for HTML and nested
-Markdown injections, predicates in Neovim's dialect, `eq?` and `any-of?` on
+Markdown injections, `Layers` over HTML (scripts by type, styles) and
+Markdown (front matter, inline text, nested fences, combined HTML blocks)
+through edits, a wanted range, UTF-16, a deadline and a snapshot, predicates in Neovim's dialect, `eq?` and `any-of?` on
 long and UTF-16 reader text, tag definitions in C, Swift and C# and
 references in Rust, a deadline that pauses and resumes a parse, a canceled
 parse, and the allocator seam's balance.

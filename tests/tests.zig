@@ -672,3 +672,250 @@ test "fuzz: eq? holds exactly for equal texts, from a slice, a reader in pieces 
     const g = try need("json");
     try shakedown.check(gpa, g, eqMatchesText, .{ .cases = 200, .seed = 0xe9 });
 }
+
+// ---------------------------------------------------------------------------
+// Layers
+// ---------------------------------------------------------------------------
+
+/// Injections resolved to the selected grammars by name, some renamed.
+const Names = struct {
+    resolver: ts.InjectionResolver = .{ .resolve = resolve },
+    renames: []const [2][]const u8 = &.{},
+
+    fn resolve(r: *const ts.InjectionResolver, name: []const u8) ?*const ts.Grammar {
+        const self: *const Names = @fieldParentPtr("resolver", r);
+        for (self.renames) |pair| if (std.mem.eql(u8, pair[0], name)) return grammar(pair[1]);
+        return grammar(name);
+    }
+};
+
+/// The text of each layer of `name`, its ranges joined, in layer order.
+fn layerTexts(layers: *const ts.Layers, text: []const u8, name: []const u8, buffer: [][]const u8) [][]const u8 {
+    var n: usize = 0;
+    for (layers.all()) |l| {
+        if (!std.mem.eql(u8, l.grammar.name, name)) continue;
+        buffer[n] = text[l.ranges[0].start_byte..l.ranges[l.ranges.len - 1].end_byte];
+        n += 1;
+    }
+    return buffer[0..n];
+}
+
+fn countLayers(layers: *const ts.Layers, name: []const u8) usize {
+    var n: usize = 0;
+    for (layers.all()) |l| n += @intFromBool(std.mem.eql(u8, l.grammar.name, name));
+    return n;
+}
+
+fn layerOf(layers: *const ts.Layers, name: []const u8) ?ts.Layer {
+    for (layers.all()) |l| if (std.mem.eql(u8, l.grammar.name, name)) return l;
+    return null;
+}
+
+test "layers: HTML scripts by type (gsub!) and as modules, styles in elements and attributes" {
+    const html = try need("html");
+    _ = try need("javascript");
+    _ = try need("css");
+    const names: Names = .{};
+    const text = "<html><script type=\"text/javascript\">let a = 1;</script><script type=\"module\">b();</script><style>p { color: red; }</style><p style=\"color: blue\">x</p></html>";
+    var layers: ts.Layers = try .init(gpa, html, &names.resolver, .{});
+    defer layers.deinit();
+    const changed = try layers.update(io, .{ .slice = text }, .everything, .{});
+    try std.testing.expectEqualSlices(ts.Range, &.{.everything}, changed);
+    var buffer: [8][]const u8 = undefined;
+    const scripts = layerTexts(&layers, text, "javascript", &buffer);
+    try std.testing.expectEqual(2, scripts.len);
+    try std.testing.expectEqualStrings("let a = 1;", scripts[0]);
+    try std.testing.expectEqualStrings("b();", scripts[1]);
+    const styles = layerTexts(&layers, text, "css", &buffer);
+    try std.testing.expectEqual(2, styles.len);
+    try std.testing.expectEqualStrings("p { color: red; }", styles[0]);
+    try std.testing.expectEqualStrings("color: blue", styles[1]);
+    for (layers.all()[1..]) |l| {
+        try std.testing.expectEqual(@as(?u32, layers.all()[0].id), l.parent);
+        // Positions are absolute: the tree starts where its range does.
+        try std.testing.expectEqual(l.ranges[0].start_byte, l.tree.rootNode().startByte());
+    }
+}
+
+test "layers: Markdown front matter by rows (offset!), inline text, fences nested twice, combined HTML blocks" {
+    const md = try need("markdown");
+    _ = try need("markdown_inline");
+    _ = try need("zig");
+    _ = try need("html");
+    _ = try need("json");
+    // No YAML grammar in the test set: its layer is parsed as JSON.
+    const names: Names = .{ .renames = &.{.{ "yaml", "json" }} };
+    const text = "---\ntitle: x\n---\n\n# T *e*\n\n```zig\nconst s = 1;\n```\n\n````markdown\n```zig\nconst y = 2;\n```\n````\n\n<div>\nhi\n</div>\n\npara\n\n<div>\nyo\n</div>\n";
+    var layers: ts.Layers = try .init(gpa, md, &names.resolver, .{});
+    defer layers.deinit();
+    _ = try layers.update(io, .{ .slice = text }, .everything, .{});
+    var buffer: [8][]const u8 = undefined;
+    // `(#offset! @injection.content 1 0 -1 0)`: the lines between the fences.
+    try std.testing.expectEqualStrings("title: x\n", layerTexts(&layers, text, "json", &buffer)[0]);
+    const inline_texts = layerTexts(&layers, text, "markdown_inline", &buffer);
+    try std.testing.expectEqual(2, inline_texts.len);
+    try std.testing.expectEqualStrings("T *e*", inline_texts[0]);
+    try std.testing.expectEqualStrings("para", inline_texts[1]);
+    const zig_texts = layerTexts(&layers, text, "zig", &buffer);
+    try std.testing.expectEqual(2, zig_texts.len);
+    try std.testing.expectEqualStrings("const s = 1;\n", zig_texts[0]);
+    try std.testing.expectEqualStrings("const y = 2;\n", zig_texts[1]);
+    var depths: [2]u8 = undefined;
+    var n: usize = 0;
+    for (layers.all()) |l| if (std.mem.eql(u8, l.grammar.name, "zig")) {
+        try std.testing.expect(!l.tree.rootNode().hasError());
+        depths[n] = l.depth;
+        n += 1;
+    };
+    try std.testing.expectEqual([2]u8{ 1, 2 }, depths);
+    // `injection.combined`: both blocks, one tree.
+    const html_layer = layerOf(&layers, "html").?;
+    try std.testing.expectEqual(2, html_layer.ranges.len);
+    try std.testing.expectEqual(1, countLayers(&layers, "html"));
+    try std.testing.expect(!html_layer.tree.rootNode().hasError());
+}
+
+/// `text[0..at] ++ insert ++ text[at + remove..]`, and the edit saying so
+/// (one line: columns are bytes).
+fn splice(buffer: []u8, text: []const u8, at: u32, remove: u32, insert: []const u8) struct { []const u8, ts.InputEdit } {
+    @memcpy(buffer[0..at], text[0..at]);
+    @memcpy(buffer[at..][0..insert.len], insert);
+    const rest = text[at + remove ..];
+    @memcpy(buffer[at + insert.len ..][0..rest.len], rest);
+    const new_end: u32 = at + @as(u32, @intCast(insert.len));
+    return .{ buffer[0 .. at + insert.len + rest.len], .{
+        .start_byte = at,
+        .old_end_byte = at + remove,
+        .new_end_byte = new_end,
+        .start_point = .{ .column = at },
+        .old_end_point = .{ .column = at + remove },
+        .new_end_point = .{ .column = new_end },
+    } };
+}
+
+test "layers: an edit parses again only the layers it touches, and an injection that goes is removed" {
+    const html = try need("html");
+    _ = try need("javascript");
+    _ = try need("css");
+    const names: Names = .{};
+    const text = "<script>let a = 1;</script><style>p { color: red; }</style>";
+    var layers: ts.Layers = try .init(gpa, html, &names.resolver, .{});
+    defer layers.deinit();
+    _ = try layers.update(io, .{ .slice = text }, .everything, .{});
+    const css_tree = layerOf(&layers, "css").?.tree.raw;
+
+    var buffer: [128]u8 = undefined;
+    const at: u32 = @intCast(std.mem.find(u8, text, "1;").?);
+    const edited, const e = splice(&buffer, text, at, 1, "22");
+    try layers.edit(e);
+    const changed = try layers.update(io, .{ .slice = edited }, .everything, .{});
+    var texts: [4][]const u8 = undefined;
+    try std.testing.expectEqualStrings("let a = 22;", layerTexts(&layers, edited, "javascript", &texts)[0]);
+    var covered = false;
+    for (changed) |r| covered = covered or (r.start_byte <= at and at + 2 <= r.end_byte);
+    try std.testing.expect(covered);
+    // The style's layer was left alone.
+    try std.testing.expectEqual(css_tree, layerOf(&layers, "css").?.tree.raw);
+
+    // The script goes, and its layer with it.
+    var buffer2: [128]u8 = undefined;
+    const end: u32 = @intCast(std.mem.find(u8, edited, "<style>").?);
+    const removed, const e2 = splice(&buffer2, edited, 0, end, "");
+    try layers.edit(e2);
+    _ = try layers.update(io, .{ .slice = removed }, .everything, .{});
+    try std.testing.expectEqual(0, countLayers(&layers, "javascript"));
+    try std.testing.expectEqualStrings("p { color: red; }", layerTexts(&layers, removed, "css", &texts)[0]);
+}
+
+test "layers: injections resolve over the wanted range, combined ones over the whole document" {
+    const md = try need("markdown");
+    _ = try need("markdown_inline");
+    _ = try need("zig");
+    _ = try need("html");
+    const names: Names = .{};
+    var text_buffer: [4096]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&text_buffer);
+    try w.writeAll("<div>\nx\n</div>\n\n```zig\nconst a = 1;\n```\n\n");
+    for (0..40) |_| try w.writeAll("filler paragraph\n\n");
+    try w.writeAll("```zig\nconst b = 2;\n```\n\n<div>\ny\n</div>\n");
+    const text = w.buffered();
+    var layers: ts.Layers = try .init(gpa, md, &names.resolver, .{});
+    defer layers.deinit();
+    _ = try layers.update(io, .{ .slice = text }, .{ .end_byte = 45, .end_point = .{ .row = 7 } }, .{});
+    try std.testing.expectEqual(1, countLayers(&layers, "zig"));
+    // The first filler paragraph starts at byte 41.
+    try std.testing.expectEqual(1, countLayers(&layers, "markdown_inline"));
+    try std.testing.expectEqual(2, layerOf(&layers, "html").?.ranges.len);
+    _ = try layers.update(io, .{ .slice = text }, .everything, .{});
+    try std.testing.expectEqual(2, countLayers(&layers, "zig"));
+    try std.testing.expectEqual(40, countLayers(&layers, "markdown_inline"));
+}
+
+test "layers: a snapshot keeps its trees after the layers change" {
+    const html = try need("html");
+    _ = try need("javascript");
+    const names: Names = .{};
+    const text = "<script>let a = 1;</script>";
+    var layers: ts.Layers = try .init(gpa, html, &names.resolver, .{});
+    defer layers.deinit();
+    _ = try layers.update(io, .{ .slice = text }, .everything, .{});
+    var snapshot = try layers.snapshot(gpa);
+    defer snapshot.deinit();
+    var buffer: [64]u8 = undefined;
+    const removed, const e = splice(&buffer, text, 0, @intCast(text.len), "<p></p>");
+    try layers.edit(e);
+    _ = try layers.update(io, .{ .slice = removed }, .everything, .{});
+    try std.testing.expectEqual(1, layers.all().len);
+    try std.testing.expectEqual(2, snapshot.layers.len);
+    try std.testing.expectEqualStrings("program", snapshot.layers[1].tree.rootNode().kind());
+}
+
+test "layers: UTF-16 text names its injections the same" {
+    const html = try need("html");
+    _ = try need("javascript");
+    _ = try need("css");
+    const names: Names = .{};
+    const utf8 = "<script type=\"text/javascript\">let a = 1;</script><style>p { color: red; }</style>";
+    var units: [128]u16 = undefined;
+    const n = try std.unicode.utf8ToUtf16Le(&units, utf8);
+    // utf8ToUtf16Le stores each unit little-endian: these bytes are UTF-16LE.
+    const text = std.mem.sliceAsBytes(units[0..n]);
+    const Whole = struct {
+        reader: ts.Input.Reader = .{ .read = read, .encoding = .utf16le },
+        text: []const u8,
+        fn read(reader: *const ts.Input.Reader, byte: u32, _: ts.Point) []const u8 {
+            const self: *const @This() = @fieldParentPtr("reader", reader);
+            return if (byte < self.text.len) self.text[byte..] else "";
+        }
+    };
+    const whole: Whole = .{ .text = text };
+    var layers: ts.Layers = try .init(gpa, html, &names.resolver, .{});
+    defer layers.deinit();
+    _ = try layers.update(io, .{ .reader = &whole.reader }, .everything, .{});
+    const script = layerOf(&layers, "javascript").?;
+    // Ranges are in bytes of the UTF-16 text.
+    const start: u32 = @intCast(2 * std.mem.find(u8, utf8, "let").?);
+    try std.testing.expectEqual(start, script.ranges[0].start_byte);
+    try std.testing.expect(!script.tree.rootNode().hasError());
+    try std.testing.expectEqual(1, countLayers(&layers, "css"));
+}
+
+test "layers: an update past its deadline pauses, and the next one finishes the layers" {
+    const html = try need("html");
+    _ = try need("javascript");
+    const names: Names = .{};
+    // Big enough that the runtime checks its progress callback.
+    var text: std.ArrayList(u8) = .empty;
+    defer text.deinit(gpa);
+    try text.appendSlice(gpa, "<script>\n");
+    for (0..2000) |i| try text.print(gpa, "function f{d}(a) {{ return a * {d}; }}\n", .{ i, i });
+    try text.appendSlice(gpa, "</script>\n");
+    var layers: ts.Layers = try .init(gpa, html, &names.resolver, .{});
+    defer layers.deinit();
+    const past = std.Io.Clock.Timestamp.now(io, .awake);
+    try std.testing.expectError(error.Paused, layers.update(io, .{ .slice = text.items }, .everything, .{ .deadline = past }));
+    _ = try layers.update(io, .{ .slice = text.items }, .everything, .{});
+    const script = layerOf(&layers, "javascript").?;
+    try std.testing.expect(!script.tree.rootNode().hasError());
+    try std.testing.expectEqual(1, countLayers(&layers, "javascript"));
+}

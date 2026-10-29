@@ -288,6 +288,82 @@ pub fn findAt(io: std.Io, subject: []const u8, pattern: Pattern) FindError!?Foun
     return null;
 }
 
+pub const GsubError = FindError || error{
+    /// A `%` in the replacement not followed by a digit or `%`, or naming a
+    /// capture the pattern lacks.
+    InvalidReplacement,
+    /// The result does not fit the caller's buffer.
+    NoSpaceLeft,
+};
+
+/// Lua's `string.gsub(subject, pattern, replacement)` into `buffer`, as
+/// `str_gsub` in `lstrlib.c`: every match replaced, `%0` the whole match,
+/// `%1`-`%9` its captures (`%1` the whole match when the pattern has none),
+/// `%%` a percent sign. A cancellation point on `io`.
+pub fn gsub(io: std.Io, subject: []const u8, pattern: Pattern, replacement: []const u8, buffer: []u8) GsubError![]u8 {
+    var w: std.Io.Writer = .fixed(buffer);
+    var pat = pattern.text;
+    const anchored = pat.len > 0 and pat[0] == '^';
+    if (anchored) pat = pat[1..];
+    var budget: Budget = .{ .io = io };
+    var at: usize = 0;
+    var last: ?usize = null;
+    // Each round matches past `last` or copies a byte: at most two per
+    // position, the end of the subject included.
+    for (0..2 * subject.len + 2) |_| {
+        var s: State = .{ .src = subject, .pat = pat, .budget = &budget };
+        const end = doMatch(&s, at, 0) catch |err| switch (err) {
+            error.InvalidPattern => unreachable, // unreachable: `Pattern.init` refused every pattern doMatch refuses
+            else => |e| return e,
+        };
+        if (end != null and end != last) {
+            expand(&w, &s, replacement, at, end.?) catch |err| switch (err) {
+                error.WriteFailed => return error.NoSpaceLeft,
+                else => |e| return e,
+            };
+            at = end.?;
+            last = end;
+        } else if (at < subject.len) {
+            w.writeByte(subject[at]) catch return error.NoSpaceLeft;
+            at += 1;
+        } else break;
+        if (anchored) break;
+    }
+    w.writeAll(subject[at..]) catch return error.NoSpaceLeft;
+    return w.buffered();
+}
+
+/// `add_s`: the replacement for the match `[start, end)`.
+fn expand(w: *std.Io.Writer, s: *const State, replacement: []const u8, start: usize, end: usize) (std.Io.Writer.Error || error{InvalidReplacement})!void {
+    var i: usize = 0;
+    while (i < replacement.len) : (i += 1) {
+        const ch = replacement[i];
+        if (ch != '%') {
+            try w.writeByte(ch);
+            continue;
+        }
+        i += 1;
+        if (i == replacement.len) return error.InvalidReplacement;
+        const d = replacement[i];
+        if (d == '%') {
+            try w.writeByte('%');
+        } else if (d == '0') {
+            try w.writeAll(s.src[start..end]);
+        } else if (d >= '1' and d <= '9') {
+            const l = d - '1';
+            if (l >= s.level) {
+                if (l != 0) return error.InvalidReplacement;
+                try w.writeAll(s.src[start..end]);
+            } else if (s.capture[l].len == cap_position) {
+                // Lua's positions count from 1.
+                try w.print("{d}", .{s.capture[l].start + 1});
+            } else {
+                try w.writeAll(s.src[s.capture[l].start..][0..@intCast(s.capture[l].len)]);
+            }
+        } else return error.InvalidReplacement;
+    }
+}
+
 /// A pattern `validate` accepted, which matching cannot refuse.
 pub const Pattern = struct {
     text: []const u8,
@@ -405,6 +481,26 @@ test "a search past its step budget stops" {
     // Deep recursion is the same refusal, as in Lua ("pattern too complex").
     var buffer: [600]u8 = undefined;
     try t.expectError(error.TooManySteps, finds(&run, repeat(&buffer, "a?", 300)));
+}
+
+test "gsub replaces as Lua's string.gsub" {
+    const t = std.testing;
+    const io = t.io;
+    var buffer: [64]u8 = undefined;
+    // nvim-treesitter's uses: html_tags' script type, nix's comment language.
+    try t.expectEqualStrings("javascript", try gsub(io, "text/javascript", try .init("(.+)/(.+)"), "%2", &buffer));
+    try t.expectEqualStrings("bash", try gsub(io, "/* bash */", try .init("/%*%s*([%w%p]+)%s*%*/"), "%1", &buffer));
+    try t.expectEqualStrings("python", try gsub(io, "# python ", try .init("#%s*([%w%p]+)%s*"), "%1", &buffer));
+    // Lua 5.4: string.gsub("hello world", "o", "0") == "hell0 w0rld".
+    try t.expectEqualStrings("hell0 w0rld", try gsub(io, "hello world", try .init("o"), "0", &buffer));
+    // An empty match between each character, but not after the last match.
+    try t.expectEqualStrings("-a-b-", try gsub(io, "ab", try .init("x*"), "-", &buffer));
+    try t.expectEqualStrings("<ab>", try gsub(io, "ab", try .init("^(.*)$"), "<%1>", &buffer));
+    try t.expectEqualStrings("1:a 3:b", try gsub(io, "a b", try .init("()(%a)"), "%1:%2", &buffer));
+    try t.expectEqualStrings("[x]%", try gsub(io, "x", try .init("x"), "[%0]%%", &buffer));
+    try t.expectError(error.InvalidReplacement, gsub(io, "x", try .init("x"), "%a", &buffer));
+    try t.expectError(error.InvalidReplacement, gsub(io, "x", try .init("(x)"), "%2", &buffer));
+    try t.expectError(error.NoSpaceLeft, gsub(io, "abc", try .init("."), "xx", buffer[0..5]));
 }
 
 fn repeat(buffer: []u8, item: []const u8, n: usize) []const u8 {
