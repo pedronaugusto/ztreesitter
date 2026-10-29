@@ -1000,3 +1000,124 @@ test "layers: an update past its deadline pauses, and the next one finishes the 
     try std.testing.expect(!script.tree.rootNode().hasError());
     try std.testing.expectEqual(1, countLayers(&layers, "javascript"));
 }
+
+test "tags: ztreesitter's own Swift and C# queries tag definitions, calls, members, types and imports" {
+    const sources = [_]struct { []const u8, []const u8, []const []const u8, []const []const u8 }{
+        .{ "c_sharp",
+        \\using System.Text;
+        \\namespace App.Core {
+        \\  /// A shape.
+        \\  [Serializable]
+        \\  public class Circle : Shape, IComparable<Circle> {
+        \\    private Point center;
+        \\    public double Radius { get; set; }
+        \\    public Circle(Point c) { center = c; }
+        \\    /// The area.
+        \\    public double Area() { return Math.PI * Radius * Radius; }
+        \\    public List<Shape> Split(Dictionary<string, Point> m) { var b = new StringBuilder(); b.Append("x"); return Helpers.Make<Shape>(); }
+        \\  }
+        \\  public struct Point { public int X; }
+        \\  public record Pair(int A, int B);
+        \\  public interface IShape { double Area(); }
+        \\  public enum Kind { Round, Square }
+        \\  public delegate void Handler(Event e);
+        \\}
+        ,
+        &.{
+            "reference.module System.Text",       "definition.module App.Core",
+            "reference.type Serializable",        "definition.class Circle: A shape.",
+            "reference.type Shape",               "reference.type IComparable",
+            "reference.type Circle",              "reference.type Point",
+            "definition.field center",            "definition.property Radius",
+            "definition.constructor Circle",      "definition.method Area: The area.",
+            "reference.member Math",              "reference.member PI",
+            "definition.method Split",            "reference.type List",
+            "reference.type Dictionary",          "reference.type StringBuilder",
+            "reference.call Append",              "reference.call Make",
+            "definition.struct Point",            "definition.field X",
+            "definition.record Pair",             "definition.interface IShape",
+            "definition.enum Kind",               "definition.constant Round",
+            "definition.delegate Handler",        "reference.type Event",
+        },
+        &.{"definition.field b"},
+        },
+        .{ "swift",
+        \\import Foundation
+        \\/// A shape.
+        \\class Circle: Shape, Comparable {
+        \\  var radius: Double = 1
+        \\  init(radius: Double) { self.radius = radius }
+        \\  /// The area.
+        \\  func area() -> Double { let r = radius; return Double.pi * r * r }
+        \\  func split(into m: [String: Point]) -> [Shape] { return Helpers.make(Shape.self) }
+        \\}
+        \\struct Point: Hashable { let x: Int }
+        \\enum Kind { case round, square }
+        \\protocol Drawable { func draw(on canvas: Canvas) }
+        \\extension Circle: Drawable { func draw(on canvas: Canvas) { canvas.stroke(Path()) } }
+        \\typealias Shapes = [Shape]
+        \\let origin = Point(x: 0)
+        \\func helper() {}
+        ,
+        &.{
+            "reference.module Foundation",     "definition.class Circle: A shape.",
+            "reference.type Shape",            "reference.type Comparable",
+            "definition.property radius",      "reference.type Double",
+            "definition.constructor init",     "definition.method area: The area.",
+            "reference.member pi",             "definition.method split",
+            "reference.type String",           "reference.type Point",
+            "reference.member Helpers",        "reference.call make",
+            "definition.struct Point",         "reference.type Hashable",
+            "definition.property x",           "definition.enum Kind",
+            "definition.constant round",       "definition.interface Drawable",
+            "definition.method draw",          "reference.type Canvas",
+            "reference.type Drawable",         "reference.call stroke",
+            "reference.call Path",             "definition.typealias Shapes",
+            "definition.property origin",      "reference.call Point",
+            "definition.function helper",
+        },
+        // A `let` in a function body is local; an extension names its type.
+        &.{ "definition.property r", "definition.class Circle", "definition.function area" },
+        },
+    };
+    var any = false;
+    for (sources) |src| {
+        const g = grammar(src[0]) orelse continue;
+        any = true;
+        var tags = try ts.Tags.init(gpa, g.language(), g.queries.tags.?, .{});
+        defer tags.deinit();
+        var out: std.ArrayList(ts.Tag) = .empty;
+        defer out.deinit(gpa);
+        var docs: std.ArrayList(ts.Range) = .empty;
+        defer docs.deinit(gpa);
+        try collectTags(g, &tags, src[1], &out, &docs);
+        // "role.kind name" or "role.kind name: doc".
+        var seen: std.StringHashMapUnmanaged(void) = .empty;
+        defer {
+            var it = seen.keyIterator();
+            while (it.next()) |k| gpa.free(k.*);
+            seen.deinit(gpa);
+        }
+        for (out.items) |t| {
+            var buf: [256]u8 = undefined;
+            var w: std.Io.Writer = .fixed(&buf);
+            try tags.docText(gpa, t, docs.items, .{ .slice = src[1] }, &w);
+            const name = src[1][t.name.start_byte..t.name.end_byte];
+            const key = if (w.buffered().len == 0)
+                try gpa.print("{t}.{s} {s}", .{ t.role, t.kind, name })
+            else
+                try gpa.print("{t}.{s} {s}: {s}", .{ t.role, t.kind, name, w.buffered() });
+            const slot = try seen.getOrPut(gpa, key);
+            if (slot.found_existing) gpa.free(key);
+        }
+        for (src[2]) |want| if (!seen.contains(want)) {
+            std.debug.print("{s}: no tag \"{s}\"\n", .{ src[0], want });
+            return error.TestUnexpectedResult;
+        };
+        for (src[3]) |unwanted| if (seen.contains(unwanted)) {
+            std.debug.print("{s}: unwanted tag \"{s}\"\n", .{ src[0], unwanted });
+            return error.TestUnexpectedResult;
+        };
+    }
+    if (!any) return error.SkipZigTest;
+}

@@ -172,8 +172,9 @@ pub const Tags = struct {
     }
 
     /// Append the tags under `root` to `out`, in match order, and their
-    /// documentation's nodes to `docs`. A tag needs a `@name` without
-    /// syntax errors, as in `tags.rs`.
+    /// documentation's nodes to `docs`. As in `tags.rs`, a tag needs a
+    /// `@name` without syntax errors, and a name gets one tag: where two
+    /// patterns tag it, the earlier pattern's.
     pub fn collect(
         t: *const Tags,
         gpa: std.mem.Allocator,
@@ -191,6 +192,8 @@ pub const Tags = struct {
         if (t.locals) |*l| try scopes.collect(arena, io, l, cursor, root, input);
 
         var doc_nodes: std.ArrayList(Node) = .empty;
+        // Each name's tag in `out`, by the name's bytes.
+        var named: std.AutoHashMapUnmanaged([2]u32, usize) = .empty;
         var matches = cursor.matches(io, &t.query, root, input, .{});
         while (try matches.next()) |m| {
             const pattern = &t.patterns[m.pattern];
@@ -225,10 +228,12 @@ pub const Tags = struct {
                     row = doc.startPoint().row;
                 }
             };
+            const slot = try named.getOrPut(arena, .{ name_node.startByte(), name_node.endByte() });
+            if (slot.found_existing and out.items[slot.value_ptr.*].pattern <= m.pattern) continue;
             const kept = doc_nodes.items[first..];
             const start: u32 = @intCast(docs.items.len);
             for (kept) |d| try docs.append(gpa, d.range());
-            try out.append(gpa, .{
+            const value: Tag = .{
                 .role = tag.role,
                 .kind = tag.kind,
                 .name = name_node.range(),
@@ -241,7 +246,13 @@ pub const Tags = struct {
                 },
                 .docs = .{ .start = start, .len = @intCast(kept.len) },
                 .pattern = m.pattern,
-            });
+            };
+            if (slot.found_existing) {
+                out.items[slot.value_ptr.*] = value;
+            } else {
+                slot.value_ptr.* = out.items.len;
+                try out.append(gpa, value);
+            }
         }
     }
 

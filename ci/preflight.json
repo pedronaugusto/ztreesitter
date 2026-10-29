@@ -16,6 +16,7 @@
   ],
   "shipped": {
     "libs": "the vendored tree-sitter runtime and the patch it carries (libs/tree-sitter.patch): the library's one translation unit is lib/src/lib.c, and the installed headers are its files",
+    "queries": "this repository's own tags queries (Swift, C#), which addGrammars embeds into a consumer's grammars module from the package's path",
     "LICENSES.md": "the licences of the vendored runtime and of the catalogue's grammars, which a copy of the package carries with their code",
     "UPSTREAM.md": "the vendored runtime's provenance: its tag and commit, the fix libs/tree-sitter.patch carries, and the one difference this build makes to it"
   },

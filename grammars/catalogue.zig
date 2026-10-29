@@ -620,7 +620,7 @@ pub const grammars: []const schema.Grammar = &.{
             .locals = &.{.{ .source = .nvim, .path = "runtime/queries/c_sharp/locals.scm" }},
             .folds = &.{.{ .source = .nvim, .path = "runtime/queries/c_sharp/folds.scm" }},
             .indents = &.{},
-            .tags = &.{.{ .source = .grammar, .path = "queries/tags.scm" }},
+            .tags = &.{.{ .source = .ztreesitter, .path = "queries/c_sharp/tags.scm" }},
         },
     },
     .{
@@ -7452,7 +7452,7 @@ pub const grammars: []const schema.Grammar = &.{
             .locals = &.{.{ .source = .nvim, .path = "runtime/queries/swift/locals.scm" }},
             .folds = &.{.{ .source = .nvim, .path = "runtime/queries/swift/folds.scm" }},
             .indents = &.{.{ .source = .nvim, .path = "runtime/queries/swift/indents.scm" }},
-            .tags = &.{.{ .source = .grammar, .path = "queries/tags.scm" }},
+            .tags = &.{.{ .source = .ztreesitter, .path = "queries/swift/tags.scm" }},
         },
     },
     .{

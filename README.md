@@ -100,9 +100,12 @@ otherwise have it compiled into the build (several do not compile on current Zig
 some contain symlinks Windows cannot create, and four commit no `parser.c`;
 the mirror holds the parser this repository generates for those.
 
-Queries come from three places: highlights, injections, locals, folds and
+Queries come from four places: highlights, injections, locals, folds and
 indents from nvim-treesitter, written against the same grammar revisions;
-tags from the grammar's own repository, else from Helix. `; inherits:` lines
+tags from this repository's `queries/` (Swift and C#: definitions of every
+kind, and references from calls, member access, inheritance, generic
+arguments, parameter, field and property types, attributes and imports),
+else the grammar's own repository, else Helix. `; inherits:` lines
 are resolved as Neovim resolves them. Not every language has every query:
 of nvim-treesitter's 323, all have highlights, 300 injections, 224 folds,
 168 indents and 151 locals; 70 grammars have a tags query, and most of those
