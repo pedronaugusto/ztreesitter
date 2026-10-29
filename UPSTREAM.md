@@ -28,18 +28,13 @@ name in `src/abi_check.zig`.
 Patched: `libs/tree-sitter.patch`, against `v0.27.0`
 (`6070dbfefd326bd735e5683eb128cc1b57dad0c0`), one change:
 
-- **A field before a predicate wrote past the query's steps.** In
-  `lib/src/query.c`, `ts_query__parse_pattern` parses a field's pattern and
-  then names the field on that pattern's first step, at the index the steps
-  had before it. A predicate adds no step, so for `(pair key: (#set! x))`
-  that index is the array's size: a debug build stops on `array_get`'s
-  assertion (`query.c:2883`), and a release build writes the field id one
-  step past the array. The patch refuses the pattern with
-  `TSQueryErrorSyntax` at the field name, as the function's other syntax
-  errors do. Unfixed upstream at `v0.27.1` and at `master`
-  (`ad067fddf76a32c3071f8f3a31e8719d348e2737`), and not yet reported. Found
-  on 2026-10-29 by the query-source fuzz target in `tests/tests.zig`;
-  "a field before a predicate is a syntax error at the field" tests it.
+- `lib/src/query.c`, `ts_query__parse_pattern`, line 2883 at `v0.27.0`:
+  for a field before a predicate, `(pair key: (#set! x))` on json, the
+  field is set on `steps[steps.size]` (an assertion failure in a debug
+  build, a write past the array in a release build). The patch returns
+  `TSQueryErrorSyntax` at the field name. Unchanged upstream at `master`
+  `ad067fddf76a32c3071f8f3a31e8719d348e2737`. Test: "a field before a
+  predicate is a syntax error at the field" in `tests/tests.zig`.
 
 Known upstream behaviour, recorded rather than patched: `lib/src/query.c`
 (`symbol_table_insert_name`, line 957) copies a query's empty string literal
