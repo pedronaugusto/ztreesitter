@@ -11,7 +11,7 @@ pub fn main(init: std.process.Init) !void {
 }
 
 fn run(gpa: std.mem.Allocator, io: std.Io) !void {
-    // BEGIN README usage
+    // --- README:usage ---
     const zig = &grammars.zig;
     const source = "pub fn add(a: u32, b: u32) u32 {\n    return a + b;\n}\n";
 
@@ -37,5 +37,5 @@ fn run(gpa: std.mem.Allocator, io: std.Io) !void {
         const name = query.captureName(event.capture().index);
         std.debug.print("{s:<24} {s}\n", .{ name, event.node().text(source) });
     }
-    // END README usage
+    // --- README:usage ---
 }

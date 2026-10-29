@@ -13,9 +13,11 @@ pub const representative = [_][]const u8{
     "zig",
 };
 
+/// What a project that depends on ztreesitter builds: the runtime, the
+/// `ztreesitter` module over it and `ztreesitter.catalogue`. Grammars are the
+/// application's, through `addGrammars`. The tests, checks, example and
+/// benchmark are `dev`'s.
 pub fn build(b: *std.Build) void {
-    importChecks(b);
-
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -25,11 +27,6 @@ pub fn build(b: *std.Build) void {
     // naming a __ubsan symbol. The suite turns it on explicitly. Grammars are
     // never sanitized: their C is third-party and unpatched.
     const sanitize_c = b.option(bool, "sanitize_c", "Compile the runtime's C with the undefined-behaviour sanitizer") orelse false;
-
-    const options = b.addOptions();
-    options.addOption([]const u8, "version", manifest.version);
-    options.addOption(bool, "sanitize_c", sanitize_c);
-    const options_module = options.createModule();
 
     //=====================================================================
     // The runtime: one translation unit, lib/src/lib.c, with the macros
@@ -63,71 +60,84 @@ pub fn build(b: *std.Build) void {
     // no C, no fetch.
     //=====================================================================
 
-    const catalogue_module = b.addModule("ztreesitter.catalogue", .{ .root_source_file = b.path("grammars/catalogue.zig") });
+    _ = b.addModule("ztreesitter.catalogue", .{ .root_source_file = b.path("grammars/catalogue.zig"), .target = target, .optimize = optimize });
 
     const module = b.addModule("ztreesitter", .{
         .root_source_file = b.path("src/ztreesitter.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{.{ .name = "ztreesitter_options", .module = options_module }},
+        .imports = &.{.{ .name = "ztreesitter_options", .module = optionsModule(b, sanitize_c, target, optimize) }},
     });
     module.linkLibrary(runtime);
+}
 
-    //=====================================================================
-    // Grammars, when this is the root build. As a dependency ztreesitter
-    // declares no grammar option: an application names its grammars through
-    // `addGrammars`, so every library in it shares one instance.
-    //=====================================================================
+/// What the sources read of the build: the version and whether the runtime
+/// is sanitized.
+fn optionsModule(b: *std.Build, sanitize_c: bool, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize) *std.Build.Module {
+    const options = b.addOptions();
+    options.addOption([]const u8, "version", manifest.version);
+    options.addOption(bool, "sanitize_c", sanitize_c);
+    return b.createModule(.{ .root_source_file = options.getOutput(), .target = target, .optimize = optimize });
+}
 
-    var grammars: ?*std.Build.Module = null;
-    if (b.pkg_hash.len == 0) {
-        const spec = b.option([]const u8, "grammars", "Grammars the tests compile: none, all, or a comma list (default: the representative set)");
-        var names: std.ArrayList([]const u8) = .empty;
-        if (spec) |list| {
-            var it = std.mem.tokenizeScalar(u8, list, ',');
-            while (it.next()) |name| names.append(b.allocator, name) catch @panic("OOM");
-        } else {
-            names.appendSlice(b.allocator, &representative) catch @panic("OOM");
-        }
-        grammars = addGrammarsTo(b, b, module, names.items, .{ .target = target, .optimize = optimize });
+/// ztreesitter's development: its tests, checks, example and benchmark under
+/// preflight's gate, against the package as a consumer gets it, with its
+/// grammars named through `addGrammars` as an application names them. Run
+/// through bay.
+pub fn dev(b: *std.Build, tools: type) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+    const sanitize_c = b.option(bool, "sanitize_c", "Compile the runtime's C with the undefined-behaviour sanitizer") orelse false;
+    const spec = b.option([]const u8, "grammars", "Grammars the tests compile: none, all, or a comma list (default: the representative set)");
+    const test_filter = b.option([]const u8, "test-filter", "Run tests whose names contain this text");
+    const filters: []const []const u8 = if (test_filter) |f| &.{f} else &.{};
+
+    const package = b.dependency("ztreesitter", .{ .target = target, .optimize = optimize, .sanitize_c = sanitize_c });
+    const p = package.builder;
+    const module = package.module("ztreesitter");
+
+    var names: std.ArrayList([]const u8) = .empty;
+    if (spec) |list| {
+        var it = std.mem.tokenizeScalar(u8, list, ',');
+        while (it.next()) |name| names.append(b.allocator, name) catch @panic("OOM");
+    } else {
+        names.appendSlice(b.allocator, &representative) catch @panic("OOM");
     }
-    const grammars_module = grammars orelse emptyGrammars(b, module);
+    // Null on the configure pass that fetches the named grammars.
+    const grammars_module = addGrammars(b, package, names.items, .{}) orelse emptyGrammars(b, module, target, optimize);
 
     //=====================================================================
     // Tests. `unit` holds the tests beside the code; `tests` the ones that
     // need grammars, run against the module a consumer gets.
     //=====================================================================
 
-    const test_filter = b.option([]const u8, "test-filter", "Run tests whose names contain this text");
-    const filters: []const []const u8 = if (test_filter) |f| &.{f} else &.{};
-
     const unit = b.addTest(.{
         .name = "ztreesitter-unit",
         .filters = filters,
         .root_module = b.createModule(.{
-            .root_source_file = b.path("src/ztreesitter.zig"),
+            .root_source_file = p.path("src/ztreesitter.zig"),
             .target = target,
             .optimize = optimize,
-            .imports = &.{.{ .name = "ztreesitter_options", .module = options_module }},
+            .imports = &.{.{ .name = "ztreesitter_options", .module = optionsModule(b, sanitize_c, target, optimize) }},
         }),
     });
-    unit.root_module.linkLibrary(runtime);
+    unit.root_module.linkLibrary(package.artifact("tree-sitter"));
     // The ABI guard reads the header through translate-c; wired on the test
     // module only, so the shipped module never translates C.
-    const api_h = b.addTranslateC(.{ .root_source_file = b.path("libs/tree-sitter/lib/include/tree_sitter/api.h"), .target = target, .optimize = optimize });
-    api_h.addIncludePath(b.path("libs/tree-sitter/lib/include"));
+    const api_h = b.addTranslateC(.{ .root_source_file = p.path("libs/tree-sitter/lib/include/tree_sitter/api.h"), .target = target, .optimize = optimize });
+    api_h.addIncludePath(p.path("libs/tree-sitter/lib/include"));
     unit.root_module.addImport("api_h", api_h.createModule());
 
     const tests = b.addTest(.{
         .name = "ztreesitter-tests",
         .filters = filters,
         .root_module = b.createModule(.{
-            .root_source_file = b.path("tests/tests.zig"),
+            .root_source_file = p.path("tests/tests.zig"),
             .target = target,
             .optimize = optimize,
             .imports = &.{
                 .{ .name = "ztreesitter", .module = module },
-                .{ .name = "ztreesitter.catalogue", .module = catalogue_module },
+                .{ .name = "ztreesitter.catalogue", .module = b.createModule(.{ .root_source_file = p.path("grammars/catalogue.zig"), .target = target, .optimize = optimize }) },
                 .{ .name = "grammars", .module = grammars_module },
             },
         }),
@@ -136,7 +146,7 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run the tests and the example");
     test_step.dependOn(&b.addRunArtifact(unit).step);
     const run_tests = b.addRunArtifact(tests);
-    run_tests.setCwd(b.path("."));
+    run_tests.setCwd(p.path("."));
     test_step.dependOn(&run_tests.step);
     const check = b.step("check", "Compile the tests and the example without running them");
     check.dependOn(&unit.step);
@@ -145,7 +155,7 @@ pub fn build(b: *std.Build) void {
     const example = b.addExecutable(.{
         .name = "usage",
         .root_module = b.createModule(.{
-            .root_source_file = b.path("examples/usage.zig"),
+            .root_source_file = p.path("examples/usage.zig"),
             .target = target,
             .optimize = optimize,
             .imports = &.{
@@ -159,44 +169,27 @@ pub fn build(b: *std.Build) void {
     examples.dependOn(&b.addRunArtifact(example).step);
     test_step.dependOn(examples);
 
-    // zig build bench -Doptimize=ReleaseFast -- LANGUAGE FILE...
-    const bench = b.addExecutable(.{
-        .name = "throughput",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("bench/throughput.zig"),
+    tools.preflight.addCi(b, p, .{
+        .tests = test_step,
+        .bench = .{
+            .programs = &.{.{ .name = "throughput", .source = "bench/throughput.zig" }},
+            .imports = benchImports,
             .target = target,
             .optimize = optimize,
-            .imports = &.{
-                .{ .name = "ztreesitter", .module = module },
-                .{ .name = "grammars", .module = grammars_module },
-            },
-        }),
+        },
     });
-    check.dependOn(&bench.step);
-    const run_bench = b.addRunArtifact(bench);
-    run_bench.addPassthruArgs();
-    b.step("bench", "Measure parse and tags-query throughput on the given files").dependOn(&run_bench.step);
 }
 
-// Build-only tooling belongs to a root invocation, never a consumer's
-// dependency graph.
-fn importChecks(b: *std.Build) void {
-    const step = b.step("check-imports", "Check source layers and import boundaries");
-    if (b.pkg_hash.len != 0) return;
-    const dependency = if (b.lazyDependency("gantry", .{ .target = b.graph.host, .optimize = .Debug })) |dep| dep.module("gantry") else return;
-    const checker = b.addExecutable(.{
-        .name = "check-imports",
-        .root_module = b.createModule(.{
-            .root_source_file = b.path("ci/imports.zig"),
-            .target = b.graph.host,
-            .optimize = .Debug,
-            .imports = &.{.{ .name = "gantry", .module = dependency }},
-        }),
-    });
-    const run = b.addRunArtifact(checker);
-    run.setCwd(b.path("."));
-    run.addPassthruArgs();
-    step.dependOn(&run.step);
+/// The benchmark's imports: the module and the representative grammars.
+fn benchImports(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize) []const std.Build.Module.Import {
+    const package = b.dependency("ztreesitter", .{ .target = target, .optimize = optimize });
+    const module = package.module("ztreesitter");
+    const grammars = addGrammars(b, package, &representative, .{}) orelse emptyGrammars(b, module, target, optimize);
+
+    return b.allocator.dupe(std.Build.Module.Import, &.{
+        .{ .name = "ztreesitter", .module = module },
+        .{ .name = "grammars", .module = grammars },
+    }) catch @panic("OOM");
 }
 
 const runtime_macros = [_][2][]const u8{
@@ -365,10 +358,12 @@ fn appendFmt(b: *std.Build, list: *std.ArrayList(u8), comptime fmt: []const u8, 
 }
 
 /// What the tests import when no grammar is selected.
-fn emptyGrammars(b: *std.Build, ts: *std.Build.Module) *std.Build.Module {
+fn emptyGrammars(b: *std.Build, ts: *std.Build.Module, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize) *std.Build.Module {
     const files = b.addWriteFiles();
     return b.createModule(.{
         .root_source_file = files.add("grammars.zig", "const ts = @import(\"ztreesitter\");\npub const list = [_]*const ts.Grammar{};\n"),
+        .target = target,
+        .optimize = optimize,
         .imports = &.{.{ .name = "ztreesitter", .module = ts }},
     });
 }

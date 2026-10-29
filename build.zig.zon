@@ -4,12 +4,7 @@
     .minimum_zig_version = "0.17.0",
     .fingerprint = 0x1fc8aa51589daad2,
     .dependencies = .{
-        // Source layers in CI, for a root build only.
-        .gantry = .{
-            .url = "git+https://github.com/pedronaugusto/gantry#70fec2b48206b224b8f37b80a9ba4509fbceb9c4",
-            .hash = "gantry-0.1.0-1iNrkQGcBAB2GKOphtOijBq388UW2CCqJ18MsYkCHCSJ",
-            .lazy = true,
-        },
+
         // BEGIN GENERATED tools/catalogue.py
         .nvim_treesitter = .{
             .url = "https://github.com/nvim-treesitter/nvim-treesitter/archive/910fdf6f49e9dee7e7257c7d11a76b040fdfb9de.tar.gz",
@@ -1634,5 +1629,15 @@
         "README.md",
         "CHANGELOG.md",
         "UPSTREAM.md",
+    },
+    .dev_dependencies = .{
+        .preflight = .{
+            .url = "git+https://github.com/pedronaugusto/preflight?ref=v0.18.5#a0eb6ad53b498f49ab636be27af10efd6f190b66",
+            .hash = "preflight-0.18.5-LX1ZwjAMFAAq6oVhY_x6-BnuKHsn3lPAG4HQrFOjVCMo",
+        },
+        .shakedown = .{
+            .url = "git+https://github.com/pedronaugusto/shakedown?ref=v0.6.0#778a399a2e0800e410e6b95269bb7f533b6947e2",
+            .hash = "shakedown-0.6.0-BR8U48Z0FwD9owc-v_cfmrajSGSLOjFoJB71L3I7TvYt",
+        },
     },
 }

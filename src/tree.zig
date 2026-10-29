@@ -1,6 +1,5 @@
 //! A syntax tree.
 
-const std = @import("std");
 const c = @import("c.zig");
 const types = @import("types.zig");
 const node = @import("node.zig");

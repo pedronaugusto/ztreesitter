@@ -12,7 +12,7 @@ The block below is a region of [`examples/usage.zig`](examples/usage.zig),
 which `zig build test` builds and runs. `ci/check-readme.sh` keeps the two the
 same.
 
-<!-- BEGIN GENERATED ci/readme_usage.sh -->
+<!-- BEGIN GENERATED zig build docs -- usage -->
 ```zig
 const ts = @import("ztreesitter");
 const grammars = @import("grammars"); // made by addGrammars, see Install

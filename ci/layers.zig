@@ -2,6 +2,12 @@
 const gantry = @import("gantry");
 
 pub const layers: []const gantry.rules.Layer = &.{
+    .{ .name = "catalogue schema", .patterns = &.{
+        "grammars/schema.zig",
+    } },
+    .{ .name = "catalogue", .patterns = &.{
+        "grammars/catalogue.zig",
+    } },
     .{ .name = "C boundary", .patterns = &.{
         "src/c.zig",
     } },
@@ -41,6 +47,7 @@ pub const entries: []const []const u8 = &.{};
 
 pub const modules: []const gantry.NamedModule = &.{
     .{ .name = "ztreesitter", .path = "src/ztreesitter.zig", .from = "src/**" },
+    .{ .name = "ztreesitter.catalogue", .path = "grammars/catalogue.zig", .from = "grammars/**" },
 };
 
 pub const references: []const gantry.rules.ReferenceRule = &.{
@@ -48,9 +55,11 @@ pub const references: []const gantry.rules.ReferenceRule = &.{
         "builtin",
         "std",
         "ztreesitter_options",
+        "api_h",
     } },
-    .{ .name = "source siblings", .suffix = ".zig", .relative = true, .except_targets = &.{"src/**"} },
+    .{ .name = "source siblings", .suffix = ".zig", .relative = true, .except_targets = &.{ "src/**", "grammars/**" } },
     .{ .name = "options owner", .target = "ztreesitter_options", .except_from = &.{"src/ztreesitter.zig"} },
+    .{ .name = "the header, for the ABI guard alone", .target = "api_h", .except_from = &.{"src/abi_check.zig"} },
 };
 
 pub const required = blk: {
@@ -64,3 +73,5 @@ pub const required = blk: {
     };
     break :blk paths;
 };
+
+pub const owned: []const gantry.rules.TokenRule = &.{};
