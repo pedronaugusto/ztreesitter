@@ -17,6 +17,7 @@ Tags queries come from the grammar's own repository, else Helix at `ba40e547426b
 | 51 | tags query from the grammar |
 | 19 | tags query from Helix |
 | 44 | licence needing a reading (see notes) |
+| 25 | global names renamed into the grammar's namespace |
 
 Query-only languages, inherited by others: ecma, html_tags, jsx.
 

@@ -28,7 +28,9 @@
 const std = @import("std");
 const Io = std.Io;
 const Allocator = std.mem.Allocator;
+const builtin = @import("builtin");
 const github = @import("github.zig");
+const symbol_index = @import("archive.zig");
 
 const runtime_version = "0.27.1";
 const repository = "https://github.com/pedronaugusto/ztreesitter";
@@ -72,7 +74,9 @@ pub fn main(init: std.process.Init) !u8 {
         } else if (std.mem.eql(u8, flag, "--helix")) {
             options.helix_commit = args[i];
         } else if (std.mem.eql(u8, flag, "--tree-sitter")) {
-            options.tree_sitter = args[i];
+            // Absolute, since it runs in each grammar's directory; a bare
+            // name is looked up in PATH.
+            options.tree_sitter = if (std.mem.findScalar(u8, args[i], std.fs.path.sep) == null) args[i] else try Io.Dir.cwd().realPathFileAlloc(init.io, args[i], arena);
         } else if (std.mem.eql(u8, flag, "--only")) {
             options.only = args[i];
         } else return usage();
@@ -720,6 +724,7 @@ const Entry = struct {
     symbol: []const u8 = "",
     licence: Licence = undefined,
     tags: []const []const u8 = &.{},
+    renamed: []const []const u8 = &.{},
     helix_tags: ?[]const u8 = null,
     mirror_commit: []const u8 = "",
     package_url: []const u8 = "",
@@ -816,10 +821,62 @@ fn inspect(ctx: *github.Context, shared: *Shared, name: []const u8, info: Lua) !
     } else try parserFacts(ctx, src);
     entry.abi = facts.abi;
     entry.symbol = facts.symbol;
+    if (entry.status != .excluded) {
+        const parser_dir = entry.generated orelse src;
+        var sources: std.ArrayList([]const u8) = .empty;
+        try sources.append(ctx.arena, ctx.path(&.{ parser_dir, "parser.c" }));
+        if (entry.scanner) try sources.append(ctx.arena, ctx.path(&.{ src, "scanner.c" }));
+        const key = try ctx.arena.print("{s}-{s}{s}", .{ name, commit[0..12], if (entry.generated != null) generator_suffix else "" });
+        entry.renamed = try outsideNames(ctx, key, entry.symbol, &.{ parser_dir, src }, sources.items);
+    }
     entry.licence = try licenceOf(ctx, repo, gdir);
     entry.tags = try upstreamTags(ctx, repo, location);
     entry.helix_tags = shared.helixTags(url, location);
     return entry;
+}
+
+/// The global names a grammar's C defines outside its namespace, which the
+/// build renames into it: its sources compiled for the host as the build
+/// compiles them, and the archive's symbol index read as the build's check
+/// (tools/symbols.zig) reads it. Cached under `key`.
+fn outsideNames(ctx: *github.Context, key: []const u8, symbol: []const u8, include_dirs: []const []const u8, sources: []const []const u8) ![]const []const u8 {
+    const cached = ctx.path(&.{ ctx.cache, "renamed", key });
+    const text = if (github.isFile(ctx.io, cached)) try github.readFile(ctx, ctx.arena, cached) else blk: {
+        const tmp = try ctx.temporary();
+        defer github.remove(ctx, tmp);
+        var objects: std.ArrayList([]const u8) = .empty;
+        for (sources, 0..) |source, i| {
+            const object = ctx.path(&.{ tmp, try ctx.arena.print("{d}.o", .{i}) });
+            var argv: std.ArrayList([]const u8) = .empty;
+            try argv.appendSlice(ctx.arena, &.{ ctx.zig, "cc", "-c", "-std=c11", "-fno-sanitize=undefined", "-w" });
+            for (include_dirs) |dir| try argv.appendSlice(ctx.arena, &.{ "-I", dir });
+            try argv.appendSlice(ctx.arena, &.{ source, "-o", object });
+            _ = try github.runChecked(ctx, argv.items, .{});
+            try objects.append(ctx.arena, object);
+        }
+        const library = ctx.path(&.{ tmp, "grammar.a" });
+        _ = try github.runChecked(ctx, try std.mem.concat(ctx.arena, []const u8, &.{ &.{ ctx.zig, "ar", "rcs", library }, objects.items }), .{});
+        const bytes = try github.readFile(ctx, ctx.gpa, library);
+        defer ctx.gpa.free(bytes);
+        var names = try symbol_index.symbolIndex(ctx.gpa, bytes);
+        defer names.deinit(ctx.gpa);
+        const prefix = if (builtin.os.tag.isDarwin()) "_" else "";
+        var outside: std.ArrayList([]const u8) = .empty;
+        var it = names.keyIterator();
+        while (it.next()) |n| {
+            if (symbol_index.inNamespace(n.*, prefix, symbol)) continue;
+            try outside.append(ctx.arena, try ctx.arena.dupe(u8, symbol_index.cName(n.*, prefix) orelse n.*));
+        }
+        std.mem.sort([]const u8, outside.items, {}, github.lessThan);
+        const joined = try std.mem.join(ctx.arena, "\n", outside.items);
+        try Io.Dir.cwd().createDirPath(ctx.io, std.fs.path.dirname(cached).?);
+        try Io.Dir.cwd().writeFile(ctx.io, .{ .sub_path = cached, .data = joined });
+        break :blk joined;
+    };
+    var out: std.ArrayList([]const u8) = .empty;
+    var lines = std.mem.tokenizeScalar(u8, text, '\n');
+    while (lines.next()) |line| try out.append(ctx.arena, line);
+    return out.items;
 }
 
 /// parser.c and the tree_sitter/ headers beside it.
@@ -1204,6 +1261,14 @@ fn entryLines(ctx: *github.Context, w: *std.ArrayList(u8), root: []const u8, nvi
         try zigString(w, a, kv[1]);
         try w.appendSlice(a, ",\n");
     }
+    if (e.renamed.len != 0) {
+        try w.appendSlice(a, "        .renamed = &.{");
+        for (e.renamed, 0..) |r, i| {
+            if (i != 0) try w.appendSlice(a, ", ");
+            try zigString(w, a, r);
+        }
+        try w.appendSlice(a, "},\n");
+    }
     try w.appendSlice(a, "        .requires = &.{");
     for (e.requires, 0..) |r, i| {
         if (i != 0) try w.appendSlice(a, ", ");
@@ -1305,7 +1370,7 @@ fn writeZon(ctx: *github.Context, o: Options, entries: []const *Entry, nvim_hash
 
 fn writeReport(ctx: *github.Context, o: Options, entries: []const *Entry, query_only: []const []const u8) !void {
     const a = ctx.arena;
-    var counts: struct { ok: usize = 0, untested: usize = 0, excluded: usize = 0, generated: usize = 0, scanner: usize = 0, tags: usize = 0, helix: usize = 0, noted: usize = 0 } = .{};
+    var counts: struct { ok: usize = 0, untested: usize = 0, excluded: usize = 0, generated: usize = 0, scanner: usize = 0, tags: usize = 0, helix: usize = 0, noted: usize = 0, renamed: usize = 0 } = .{};
     for (entries) |e| {
         switch (e.status) {
             .ok => counts.ok += 1,
@@ -1313,6 +1378,7 @@ fn writeReport(ctx: *github.Context, o: Options, entries: []const *Entry, query_
             .excluded => counts.excluded += 1,
         }
         if (e.generated != null) counts.generated += 1;
+        if (e.renamed.len != 0) counts.renamed += 1;
         if (e.scanner) counts.scanner += 1;
         if (e.tags.len != 0) counts.tags += 1;
         if (e.tags.len == 0 and e.helix_tags != null) counts.helix += 1;
@@ -1339,6 +1405,7 @@ fn writeReport(ctx: *github.Context, o: Options, entries: []const *Entry, query_
         \\| {d} | tags query from the grammar |
         \\| {d} | tags query from Helix |
         \\| {d} | licence needing a reading (see notes) |
+        \\| {d} | global names renamed into the grammar's namespace |
         \\
         \\Query-only languages, inherited by others: {s}.
         \\
@@ -1353,8 +1420,9 @@ fn writeReport(ctx: *github.Context, o: Options, entries: []const *Entry, query_
         \\|---|---|---:|:---:|---|---|---|---|
         \\
     , .{
-        o.nvim_commit,    o.helix_commit[0..12], entries.len, counts.ok,    counts.untested, counts.excluded,
-        counts.generated, counts.scanner,        counts.tags, counts.helix, counts.noted,    try std.mem.join(a, ", ", query_only),
+        o.nvim_commit,                         o.helix_commit[0..12], entries.len, counts.ok,    counts.untested, counts.excluded,
+        counts.generated,                      counts.scanner,        counts.tags, counts.helix, counts.noted,    counts.renamed,
+        try std.mem.join(a, ", ", query_only),
     });
     for (entries) |e| {
         var notes: std.ArrayList([]const u8) = .empty;

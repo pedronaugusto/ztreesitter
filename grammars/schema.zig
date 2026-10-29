@@ -65,6 +65,10 @@ pub const Grammar = struct {
     licence_note: []const u8,
     /// Anything else the catalogue tool found worth saying.
     notes: []const u8,
+    /// Global names the grammar's C defines outside its namespace (`symbol`,
+    /// and names beginning with it and `_`), which the build renames to
+    /// `<symbol>__<name>`: another grammar, or the program, may define them.
+    renamed: []const []const u8 = &.{},
     /// Languages nvim-treesitter installs with this one.
     requires: []const []const u8,
     status: Status,

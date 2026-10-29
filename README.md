@@ -84,6 +84,13 @@ module then carries queries only, and `ts.Language.load(path, symbol)` opens a
 language at run time. That is how a program with hundreds of grammars stays
 small.
 
+A statically linked grammar defines only names in its own namespace: its
+language function and names beginning with it. Some grammars' C defines
+other globals (`keywords`, `end`, another grammar's scanner functions); the
+catalogue records them and the build renames each to
+`tree_sitter_<name>__<global>`, so grammars link beside each other and
+beside the program.
+
 ## Grammars
 
 [docs/grammars.md](docs/grammars.md) lists every grammar with its ABI
@@ -245,8 +252,8 @@ refs.
 rules, layers, this README's usage block), the suite on Linux, macOS and
 Windows, compile-only targets, and the suite with the runtime sanitized. The
 nightly adds the full matrix, the vendor check, and every grammar of the
-catalogue compiled and linked with no global symbol defined twice
-(`zig build check-grammars -Dgrammars=all`).
+catalogue compiled and linked, each defining only names in its namespace and
+none defined twice (`zig build check-grammars -Dgrammars=all`).
 
 ## Licence
 
