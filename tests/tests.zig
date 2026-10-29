@@ -215,6 +215,35 @@ test "a parse past its deadline pauses, then resumes to the same tree" {
     try std.testing.expectEqual(fresh.rootNode().descendantCount(), resumed.rootNode().descendantCount());
 }
 
+test "a canceled parse stops with error.Canceled" {
+    const g = try need("c");
+    var parser: ts.Parser = .init();
+    defer parser.deinit();
+    try parser.setLanguage(g.language());
+    // Long enough that the cancel lands well before the parse could end.
+    var text: std.ArrayList(u8) = .empty;
+    defer text.deinit(gpa);
+    for (0..50_000) |i| try text.print(gpa, "int f{d}(int a) {{ return a * {d}; }}\n", .{ i, i });
+
+    const Task = struct {
+        fn run(p: *ts.Parser, t: []const u8) ts.Parser.ParseError!ts.Tree {
+            return p.parse(io, .{ .slice = t }, null, .{});
+        }
+    };
+    var future = io.concurrent(Task.run, .{ &parser, text.items }) catch return error.SkipZigTest;
+    if (future.cancel(io)) |finished| {
+        var tree = finished;
+        tree.deinit();
+        return error.TestUnexpectedResult;
+    } else |err| try std.testing.expectEqual(error.Canceled, err);
+
+    // The parser is usable again once reset.
+    parser.reset();
+    var tree = try parser.parse(io, .{ .slice = "int x;" }, null, .{});
+    defer tree.deinit();
+    try std.testing.expect(!tree.rootNode().hasError());
+}
+
 test "injections: HTML's script and style parsed over included ranges" {
     const html = try need("html");
     const js = try need("javascript");
@@ -400,6 +429,31 @@ test "eq? and any-of? compare UTF-16 text with UTF-8 literals, astral code point
     try std.testing.expectEqual(1, try countMatches(g, text, .utf16le, "((string) @s (#eq? @s \"\\\"h\u{e9}llo \u{1f600}\\\"\"))"));
     try std.testing.expectEqual(0, try countMatches(g, text, .utf16le, "((string) @s (#eq? @s \"\\\"h\u{e9}llo \u{1f601}\\\"\"))"));
     try std.testing.expectEqual(1, try countMatches(g, text, .utf16le, "((string) @s (#any-of? @s \"x\" \"\\\"k\\\"\"))"));
+}
+
+test "tags: references in Rust" {
+    const g = try need("rust");
+    const text = g.queries.tags orelse return error.SkipZigTest;
+    const source = "fn area(w: i32, h: i32) -> i32 { w * h }\nfn main() { let _ = area(2, 3); }\n";
+    var tags = try ts.Tags.init(gpa, g.language(), text);
+    defer tags.deinit();
+    var parser: ts.Parser = .init();
+    defer parser.deinit();
+    var tree = try parse(&parser, g, source);
+    defer tree.deinit();
+    var cursor = try ts.QueryCursor.init(gpa);
+    defer cursor.deinit();
+    var out: std.ArrayList(ts.Tag) = .empty;
+    defer out.deinit(gpa);
+    try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = source }, &out);
+    var calls: usize = 0;
+    for (out.items) |t| {
+        if (t.role != .reference) continue;
+        try std.testing.expectEqualStrings("call", t.kind);
+        try std.testing.expectEqualStrings("area", source[t.name.start_byte..t.name.end_byte]);
+        calls += 1;
+    }
+    try std.testing.expectEqual(1, calls);
 }
 
 test "tags: definitions in C, Swift and C#" {

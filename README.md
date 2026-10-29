@@ -195,8 +195,10 @@ markdown_inline), and injection hosts (html, markdown). `-Dgrammars=a,b` or
 Every selected grammar must load, parse a sample without errors and compile
 every query in its dialect. Other tests check incremental parsing against
 fresh parses over 200 random edits, included ranges for HTML and nested
-Markdown injections, predicates in Neovim's dialect, tags in C, Swift and C#,
-a deadline that pauses and resumes a parse, and the allocator seam's balance.
+Markdown injections, predicates in Neovim's dialect, `eq?` and `any-of?` on
+long and UTF-16 reader text, tag definitions in C, Swift and C# and
+references in Rust, a deadline that pauses and resumes a parse, a canceled
+parse, and the allocator seam's balance.
 
 `bench/throughput.zig` measures parse and parse-plus-tags throughput for each
 grammar built, through preflight's `bench` step.
