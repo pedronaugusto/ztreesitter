@@ -172,9 +172,9 @@ languages and queries.
 - No highlighting, themes or injection layering yet.
 - Tags do not yet apply `strip!` and `select-adjacent!` to documentation, nor
   use a locals query to drop references to local definitions.
-- Lua patterns and `eq?` between two captures read node text from a reader
-  input through a 16 KB buffer; longer nodes are compared by prefix and
-  length.
+- `lua-match?` and `contains?` read a node's text from a reader input
+  through a 16 KB buffer, so on a longer node they see its first 16 KB.
+  `eq?` and `any-of?` compare whole texts, however long.
 - Grammars outside the catalogue are compiled by the caller and passed in
   with `Language.fromC`.
 

@@ -202,23 +202,35 @@ const Parser = struct {
             '(' => {
                 p.pos += 1;
                 if (p.dialect == .rust and p.eat('?')) {
-                    // Flags: `(?i)`, `(?i:...)`, `(?:...)`.
+                    // Flags: `(?flags)` and `(?flags:...)`. Honoured: `i` for
+                    // the whole pattern, in a `(?i)` that opens it, and the
+                    // flags that leave the defaults as they are (`u` on; `m`,
+                    // `s`, `x`, `U` and `R` off). Any other would change what
+                    // matches, and is refused.
+                    const opens_pattern = p.pos == 2;
                     var negate = false;
+                    var ignore_case: ?bool = null;
                     while (p.peek()) |f| {
                         switch (f) {
-                            'i' => p.ignore_case = !negate,
-                            'm', 's', 'x', 'u', 'U', 'R' => {},
-                            '-' => negate = true,
-                            ':' => break,
-                            ')' => {
-                                p.pos += 1;
-                                return null;
+                            'i' => ignore_case = !negate,
+                            'u' => if (negate) return error.InvalidPattern,
+                            'm', 's', 'x', 'U', 'R' => if (!negate) return error.InvalidPattern,
+                            '-' => {
+                                if (negate) return error.InvalidPattern;
+                                negate = true;
                             },
+                            ':', ')' => break,
                             else => return error.InvalidPattern,
                         }
                         p.pos += 1;
                     }
-                    if (!p.eat(':')) return error.InvalidPattern;
+                    const scoped = p.eat(':');
+                    if (!scoped and !p.eat(')')) return error.InvalidPattern;
+                    if (ignore_case) |on| {
+                        if (on != p.ignore_case and (scoped or !opens_pattern)) return error.InvalidPattern;
+                        p.ignore_case = on;
+                    }
+                    if (!scoped) return null;
                 }
                 const inner = try p.alternation();
                 if (!p.eat(')')) return error.InvalidPattern;
@@ -768,6 +780,12 @@ test "rust dialect: what tags and grammar queries use" {
     try expectMatch(.rust, "^((ENV|ARGV)|[_ab]|\\W|\\d+|\\^.*)$", "^x", true);
     try expectMatch(.rust, "^((ENV|ARGV)|[_ab]|\\W|\\d+|\\^.*)$", "xy", false);
     try expectMatch(.rust, "^(lambda|λ)$", "λ", true);
+    // Flags that keep the defaults are honoured by doing nothing.
+    try expectMatch(.rust, "(?u)^a.$", "aλ", true);
+    try expectMatch(.rust, "(?-msxUR:a.)$", "ab", true);
+    try expectMatch(.rust, "(?-msxUR:a.)$", "a\n", false);
+    try expectMatch(.rust, "(?-i)^a$", "A", false);
+    try expectMatch(.rust, "(?i-s)^a$", "A", true);
 }
 
 test "vim dialect: what nvim-treesitter's match? patterns mean" {
@@ -807,6 +825,20 @@ test "patterns outside the supported set are refused" {
         .{ .rust, "(a" },
         .{ .rust, "[a" },
         .{ .vim, "\\mfoo" },
+        // F05: flags the matcher does not honour change what a pattern means,
+        // so they are refused rather than ignored.
+        .{ .rust, "(?m)^b$" },
+        .{ .rust, "(?s)a.b" },
+        .{ .rust, "(?x)a b" },
+        .{ .rust, "(?U)a+" },
+        .{ .rust, "(?R)^a$" },
+        .{ .rust, "(?-u)\\w" },
+        .{ .rust, "(?i-u)a" },
+        .{ .rust, "(?--i)a" },
+        // `i` holds for the whole pattern only: from its start, unscoped.
+        .{ .rust, "a(?i)b" },
+        .{ .rust, "(?i:a)b" },
+        .{ .rust, "(?i)a(?-i)b" },
     }) |case| {
         try std.testing.expectError(error.InvalidPattern, compile(gpa, case[1], case[0]));
     }

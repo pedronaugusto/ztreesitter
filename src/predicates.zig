@@ -322,13 +322,17 @@ fn nodeText(input: types.Input, n: Node, buffer: []u8, spare: []u8) Text {
             }
             var out: usize = 0;
             var it = std.unicode.Utf16LeIterator.init(units[0..n_units]);
-            while (it.nextCodepoint() catch null) |cp| {
-                const len = std.unicode.utf8CodepointSequenceLength(cp) catch break;
-                if (out + len > buffer.len) break;
-                _ = std.unicode.utf8Encode(cp, buffer[out..][0..len]) catch break;
+            // Whole only when every unit was read and transcoded: UTF-8 can
+            // be longer than the UTF-16 it comes from, and a malformed
+            // sequence stops the copy.
+            const transcoded = while (true) {
+                const cp = (it.nextCodepoint() catch break false) orelse break true;
+                const len = std.unicode.utf8CodepointSequenceLength(cp) catch break false;
+                if (out + len > buffer.len) break false;
+                _ = std.unicode.utf8Encode(cp, buffer[out..][0..len]) catch break false;
                 out += len;
-            }
-            return .{ .bytes = buffer[0..out], .complete = raw.len == end - start };
+            };
+            return .{ .bytes = buffer[0..out], .complete = transcoded and raw.len == end - start };
         },
     }
 }
@@ -359,6 +363,83 @@ fn substring(haystack: []const u8, needles: []const []const u8, any: bool) bool 
     return !any;
 }
 
+/// Whether two nodes' texts are equal, compared whole, however long. In
+/// any encoding the texts are equal exactly when their bytes are. A reader's
+/// text goes in blocks of the scratch's size: a block of one node copied,
+/// the same span of the other compared with it as it is read.
+fn sameText(input: types.Input, a: Node, b: Node, scratch: *Scratch) bool {
+    const a_start = a.startByte();
+    const b_start = b.startByte();
+    const len = a.endByte() - a_start;
+    if (b.endByte() - b_start != len) return false;
+    if (input == .slice) {
+        const s = input.slice;
+        if (a_start + len > s.len or b_start + len > s.len) return false;
+        return std.mem.eql(u8, s[a_start..][0..len], s[b_start..][0..len]);
+    }
+    var done: u32 = 0;
+    while (done < len) {
+        const step: u32 = @intCast(@min(len - done, scratch_size));
+        const block = input.copy(a_start + done, a_start + done + step, &scratch.text);
+        // A reader that ends inside the node has no text to compare.
+        if (block.len != step) return false;
+        if (!sameBytes(input, b_start + done, block)) return false;
+        done += step;
+    }
+    return true;
+}
+
+/// Whether the input holds `expected` from byte `start`.
+fn sameBytes(input: types.Input, start: u32, expected: []const u8) bool {
+    const Compare = struct {
+        expected: []const u8,
+        equal: bool = true,
+
+        fn visit(cmp: *@This(), chunk: []const u8) bool {
+            if (chunk.len > cmp.expected.len or !std.mem.eql(u8, chunk, cmp.expected[0..chunk.len])) {
+                cmp.equal = false;
+                return false;
+            }
+            cmp.expected = cmp.expected[chunk.len..];
+            return true;
+        }
+    };
+    var cmp: Compare = .{ .expected = expected };
+    input.chunks(start, start + @as(u32, @intCast(expected.len)), &cmp, Compare.visit);
+    return cmp.equal and cmp.expected.len == 0;
+}
+
+/// Whether a node's text is `literal` (UTF-8), compared whole, however long:
+/// UTF-8 text byte for byte as it is read; UTF-16 text against the literal
+/// encoded the same way, a scratch-sized block at a time.
+fn isLiteral(input: types.Input, n: Node, literal: []const u8, scratch: *Scratch) bool {
+    const start = n.startByte();
+    const end = n.endByte();
+    const e = input.encoding();
+    if (e == .utf8) return end - start == literal.len and sameBytes(input, start, literal);
+    var points = (std.unicode.Utf8View.init(literal) catch return false).iterator();
+    var at = start;
+    var pending = points.nextCodepoint();
+    while (pending != null) {
+        var filled: usize = 0;
+        while (pending) |cp| : (pending = points.nextCodepoint()) {
+            // One unit, or a surrogate pair above the Basic Multilingual Plane.
+            const units: [2]u16, const count: usize = if (cp < 0x10000)
+                .{ .{ @intCast(cp), 0 }, 1 }
+            else
+                .{ .{ @intCast(0xd800 + ((cp - 0x10000) >> 10)), @intCast(0xdc00 + ((cp - 0x10000) & 0x3ff)) }, 2 };
+            if (filled + 2 * count > scratch.other.len) break;
+            for (units[0..count]) |unit| {
+                std.mem.writeInt(u16, scratch.other[filled..][0..2], unit, if (e == .utf16le) .little else .big);
+                filled += 2;
+            }
+        }
+        if (filled > end - at or !sameBytes(input, at, scratch.other[0..filled])) return false;
+        at += @intCast(filled);
+    }
+    return at == end;
+}
+
 /// Does one node satisfy the base test (before negation)?
 fn holds(f: *const Filter, n: Node, match: []const Capture, input: types.Input, scratch: *Scratch) bool {
     switch (f.test_) {
@@ -384,21 +465,13 @@ fn holds(f: *const Filter, n: Node, match: []const Capture, input: types.Input, 
     }
     const text = nodeText(input, n, &scratch.text, &scratch.other);
     switch (f.test_) {
-        .eq_string => |s| return text.complete and std.mem.eql(u8, text.bytes, s),
+        .eq_string => |s| return isLiteral(input, n, s, scratch),
         .eq_capture => |k| {
-            for (match) |cap| if (cap.index == k) {
-                const other = nodeText(input, cap.node, &scratch.other, &scratch.text);
-                // Two texts longer than the scratch compare by their prefixes
-                // and lengths: equal prefixes of equal-length nodes count as
-                // equal. Documented in README's Scope.
-                return text.complete == other.complete and std.mem.eql(u8, text.bytes, other.bytes) and
-                    (n.endByte() - n.startByte() == cap.node.endByte() - cap.node.startByte());
-            };
+            for (match) |cap| if (cap.index == k) return sameText(input, n, cap.node, scratch);
             return false;
         },
         .any_of => |list| {
-            if (!text.complete) return false;
-            for (list) |s| if (std.mem.eql(u8, s, text.bytes)) return true;
+            for (list) |s| if (isLiteral(input, n, s, scratch)) return true;
             return false;
         },
         .lua => |pattern| return lua.find(text.bytes, pattern) catch false,

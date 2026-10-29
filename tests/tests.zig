@@ -332,6 +332,74 @@ test "predicates filter matches: Neovim's dialect on the zig highlights" {
     try std.testing.expectEqual([_]usize{ 1, 1, 1, 2 }, counts);
 }
 
+/// A reader over `text` in seven-byte chunks, in `encoding`.
+const Chunks = struct {
+    text: []const u8,
+
+    fn read(context: *anyopaque, byte: u32, _: ts.Point) []const u8 {
+        const self: *const Chunks = @ptrCast(@alignCast(context));
+        if (byte >= self.text.len) return "";
+        return self.text[byte..@min(self.text.len, byte + 7)];
+    }
+
+    fn input(self: *Chunks, encoding: ts.Encoding) ts.Input {
+        return .{ .reader = .{ .context = self, .read = read, .encoding = encoding } };
+    }
+};
+
+/// How many matches `source` finds in `text`, read through `Chunks`.
+fn countMatches(g: *const ts.Grammar, text: []const u8, encoding: ts.Encoding, source: []const u8) !usize {
+    var parser: ts.Parser = .init();
+    defer parser.deinit();
+    try parser.setLanguage(g.language());
+    var chunks: Chunks = .{ .text = text };
+    var tree = try parser.parse(io, chunks.input(encoding), null, .{});
+    defer tree.deinit();
+    var query = try ts.Query.init(gpa, g.language(), source, .{ .dialect = .tree_sitter });
+    defer query.deinit();
+    var cursor = try ts.QueryCursor.init(gpa);
+    defer cursor.deinit();
+    var count: usize = 0;
+    var matches = cursor.matches(io, &query, tree.rootNode(), chunks.input(encoding), .{});
+    while (try matches.next()) |_| count += 1;
+    return count;
+}
+
+test "eq? compares whole texts from a reader, past the predicate scratch" {
+    const g = try need("json");
+    // Two strings longer than the 16 KiB scratch, equal but for their last byte.
+    const long = 40 * 1024;
+    const body = try gpa.alloc(u8, long);
+    defer gpa.free(body);
+    @memset(body, 'a');
+    const same = try gpa.print("{{\"{s}\": \"{s}\"}}", .{ body, body });
+    defer gpa.free(same);
+    const differ = try gpa.dupe(u8, same);
+    defer gpa.free(differ);
+    differ[differ.len - 3] = 'b';
+
+    const captures = "((pair key: (string) @k value: (string) @v) (#eq? @k @v))";
+    try std.testing.expectEqual(1, try countMatches(g, same, .utf8, captures));
+    try std.testing.expectEqual(0, try countMatches(g, differ, .utf8, captures));
+
+    const literal = try gpa.print("((pair value: (string) @v) (#eq? @v \"\\\"{s}\\\"\"))", .{body});
+    defer gpa.free(literal);
+    try std.testing.expectEqual(1, try countMatches(g, same, .utf8, literal));
+    try std.testing.expectEqual(0, try countMatches(g, differ, .utf8, literal));
+}
+
+test "eq? and any-of? compare UTF-16 text with UTF-8 literals, astral code points too" {
+    const g = try need("json");
+    const utf8 = "{\"k\": \"h\u{e9}llo \u{1f600}\"}";
+    var units: [64]u16 = undefined;
+    const n = try std.unicode.utf8ToUtf16Le(&units, utf8);
+    // utf8ToUtf16Le stores each unit little-endian: these bytes are UTF-16LE.
+    const text = std.mem.sliceAsBytes(units[0..n]);
+    try std.testing.expectEqual(1, try countMatches(g, text, .utf16le, "((string) @s (#eq? @s \"\\\"h\u{e9}llo \u{1f600}\\\"\"))"));
+    try std.testing.expectEqual(0, try countMatches(g, text, .utf16le, "((string) @s (#eq? @s \"\\\"h\u{e9}llo \u{1f601}\\\"\"))"));
+    try std.testing.expectEqual(1, try countMatches(g, text, .utf16le, "((string) @s (#any-of? @s \"x\" \"\\\"k\\\"\"))"));
+}
+
 test "tags: definitions in C, Swift and C#" {
     const cases = [_]struct { []const u8, []const u8, []const u8 }{
         .{ "c", "int area(int w, int h) { return w * h; }\nstruct point { int x; };\n", "area" },
