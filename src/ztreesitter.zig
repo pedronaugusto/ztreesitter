@@ -55,13 +55,14 @@ pub const version = options.version;
 /// The vendored runtime's version.
 pub const runtime_version = "0.27.0";
 /// The ABI versions of `parser.c` this runtime reads.
-pub const min_language_version = c.MIN_COMPATIBLE_LANGUAGE_VERSION;
-pub const max_language_version = c.LANGUAGE_VERSION;
+pub const min_language_version = c.min_compatible_language_version;
+pub const max_language_version = c.language_version;
 
 test {
     _ = @import("abi_check.zig");
     _ = @import("regex.zig");
     _ = @import("lua_pattern.zig");
     _ = @import("predicates.zig");
+    _ = @import("types.zig");
     std.testing.refAllDecls(@This());
 }

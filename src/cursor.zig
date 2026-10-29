@@ -7,7 +7,7 @@ const node_mod = @import("node.zig");
 
 /// A cursor over a tree, starting at a node. Borrows the tree; `deinit`.
 pub const TreeCursor = struct {
-    raw: c.TSTreeCursor,
+    raw: c.TreeCursor,
 
     pub fn init(start: node_mod.Node) TreeCursor {
         return .{ .raw = c.ts_tree_cursor_new(start.raw) };

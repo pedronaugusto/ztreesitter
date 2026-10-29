@@ -17,7 +17,7 @@ const c = @import("c.zig");
 
 const header = 16;
 
-var installed: ?std.mem.Allocator = null;
+var installed: ?std.mem.Allocator = null; // aegis: boundary: the runtime's allocator seam, set at start-up before any parser exists (setAllocator's contract) and read by its C callbacks
 
 /// Install `allocator` behind the runtime. Start-up, not an operation: call
 /// it before any parser, tree, query or cursor exists, from one thread.
@@ -34,8 +34,9 @@ pub fn resetAllocator() void {
 }
 
 fn base(ptr: *anyopaque) [*]align(header) u8 {
-    const p: [*]u8 = @ptrCast(ptr); // safe: every block this seam hands out starts `header` bytes into an allocation aligned to `header`
-    return @alignCast(p - header); // safe: as above
+    const p: [*]u8 = @ptrCast(ptr); // aegis: boundary: the runtime hands back a block this seam made, `header` bytes into an allocation aligned to `header`
+    return @alignCast(p - header); // aegis: boundary: the block's allocation starts `header` bytes before it, aligned to `header`
+
 }
 
 fn sizeOf(block: [*]align(header) u8) usize {

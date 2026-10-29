@@ -33,7 +33,7 @@ pub const InitOptions = struct {
 /// A compiled query. Immutable after `init`, so one query serves any number
 /// of cursors on any number of threads. Keeps the allocator it was given.
 pub const Query = struct {
-    raw: *c.TSQuery,
+    raw: *c.Query,
     gpa: std.mem.Allocator,
     dialect: language_mod.Dialect,
     patterns: []predicates.Pattern,
@@ -58,7 +58,7 @@ pub const Query = struct {
 
     pub fn initDiagnostic(gpa: std.mem.Allocator, lang: language_mod.Language, source: []const u8, options: InitOptions, diagnostic: *Diagnostic) Error!Query {
         var offset: u32 = 0;
-        var kind: c.TSQueryError = .None;
+        var kind: c.QueryError = .None;
         const raw = c.ts_query_new(lang.ptr, source.ptr, @intCast(source.len), &offset, &kind) orelse {
             diagnostic.offset = offset;
             return switch (kind) {
@@ -199,8 +199,8 @@ pub const Match = struct {
     pattern: u16,
     captures: []const Capture,
 
-    fn fromC(m: c.TSQueryMatch) Match {
-        const caps: []const Capture = if (m.captures) |p| @as([*]const Capture, @ptrCast(p))[0..m.capture_count] else &.{}; // safe: Capture is TSQueryCapture's layout, asserted in predicates.zig
+    fn fromC(m: c.QueryMatch) Match {
+        const caps: []const Capture = if (m.captures) |p| @as([*]const Capture, @ptrCast(p))[0..m.capture_count] else &.{}; // aegis: no-danger: Capture has c.QueryCapture's layout, asserted in predicates.zig
         return .{ .id = m.id, .pattern = m.pattern_index, .captures = caps };
     }
 
@@ -229,12 +229,12 @@ pub const Match = struct {
 /// for any number of queries and trees. Holds about 72 KB of working memory
 /// so that matching allocates nothing.
 pub const Cursor = struct {
-    raw: *c.TSQueryCursor,
+    raw: *c.QueryCursor,
     gpa: std.mem.Allocator,
     scratch: *predicates.Scratch,
     progress: Progress = .{},
     /// The runtime keeps a pointer to this for the length of an iteration.
-    options: c.TSQueryCursorOptions = .{ .payload = null, .progress_callback = null },
+    options: c.QueryCursorOptions = .{ .payload = null, .progress_callback = null },
 
     pub fn init(gpa: std.mem.Allocator) error{OutOfMemory}!Cursor {
         const scratch = try gpa.create(predicates.Scratch);
@@ -320,7 +320,7 @@ pub const Matches = struct {
     input: types.Input,
 
     pub fn next(it: *Matches) IterateError!?Match {
-        var raw: c.TSQueryMatch = undefined;
+        var raw: c.QueryMatch = undefined;
         while (c.ts_query_cursor_next_match(it.cursor.raw, &raw)) {
             const m = Match.fromC(raw);
             if (predicates.satisfies(it.query.patterns[m.pattern].filters, m.captures, it.input, it.query.dialect, it.cursor.scratch)) return m;
@@ -353,7 +353,7 @@ pub const Captures = struct {
     passed: ?u32 = null,
 
     pub fn next(it: *Captures) IterateError!?CaptureEvent {
-        var raw: c.TSQueryMatch = undefined;
+        var raw: c.QueryMatch = undefined;
         var index: u32 = 0;
         while (c.ts_query_cursor_next_capture(it.cursor.raw, &raw, &index)) {
             const m = Match.fromC(raw);
@@ -376,8 +376,8 @@ const Progress = struct {
     deadline: ?std.Io.Clock.Timestamp = null,
     stopped: ?IterateError = null,
 
-    fn check(state: *c.TSQueryCursorState) callconv(.c) bool {
-        const self: *Progress = @ptrCast(@alignCast(state.payload.?)); // safe: the payload is the cursor's own Progress
+    fn check(state: *c.QueryCursorState) callconv(.c) bool {
+        const self: *Progress = @ptrCast(@alignCast(state.payload.?)); // aegis: boundary: the runtime hands back the payload it was given: the cursor's own Progress
         const io = self.io orelse return false;
         io.checkCancel() catch {
             self.stopped = error.Canceled;

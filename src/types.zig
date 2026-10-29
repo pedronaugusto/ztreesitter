@@ -14,7 +14,7 @@ pub const Point = extern struct {
     }
 
     comptime {
-        std.debug.assert(@sizeOf(Point) == @sizeOf(c.TSPoint));
+        std.debug.assert(@sizeOf(Point) == @sizeOf(c.Point));
     }
 };
 
@@ -32,8 +32,8 @@ pub const Range = extern struct {
     };
 
     comptime {
-        std.debug.assert(@sizeOf(Range) == @sizeOf(c.TSRange));
-        std.debug.assert(@offsetOf(Range, "start_byte") == @offsetOf(c.TSRange, "start_byte"));
+        std.debug.assert(@sizeOf(Range) == @sizeOf(c.Range));
+        std.debug.assert(@offsetOf(Range, "start_byte") == @offsetOf(c.Range, "start_byte"));
     }
 };
 
@@ -48,7 +48,7 @@ pub const InputEdit = extern struct {
     new_end_point: Point,
 
     comptime {
-        std.debug.assert(@sizeOf(InputEdit) == @sizeOf(c.TSInputEdit));
+        std.debug.assert(@sizeOf(InputEdit) == @sizeOf(c.InputEdit));
     }
 };
 
@@ -57,7 +57,7 @@ pub const Encoding = enum {
     utf16le,
     utf16be,
 
-    pub fn toC(e: Encoding) c.TSInputEncoding {
+    pub fn toC(e: Encoding) c.InputEncoding {
         return switch (e) {
             .utf8 => .UTF8,
             .utf16le => .UTF16LE,

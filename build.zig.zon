@@ -1617,6 +1617,10 @@
             .lazy = true,
         },
         // END GENERATED
+        .aegis = .{
+            .url = "git+https://github.com/pedronaugusto/aegis?ref=v0.2.4#68ddadb40eb5ea602c8ba81848344171fcebeb40",
+            .hash = "aegis-0.2.4-rsxouiMcCQBrVW0T-Vq8k66DwLarBqrEFONyfpGEJGcu",
+        },
     },
     .paths = .{
         "build.zig",

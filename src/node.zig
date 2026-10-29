@@ -12,13 +12,13 @@ const Range = types.Range;
 /// A node of a tree. It borrows the tree: it is invalid once the `Tree`
 /// handle it came from is released or edited. Copying it is free.
 pub const Node = extern struct {
-    raw: c.TSNode,
+    raw: c.Node,
 
     pub fn isNull(n: Node) bool {
         return c.ts_node_is_null(n.raw);
     }
 
-    fn wrap(raw: c.TSNode) ?Node {
+    fn wrap(raw: c.Node) ?Node {
         return if (c.ts_node_is_null(raw)) null else .{ .raw = raw };
     }
 
@@ -190,7 +190,7 @@ pub const Node = extern struct {
 
     /// Adjust a node held across an edit, as `Tree.edit` adjusts the tree.
     pub fn edit(n: *Node, e: *const types.InputEdit) void {
-        c.ts_node_edit(&n.raw, @ptrCast(e)); // safe: InputEdit is TSInputEdit's layout, asserted in types.zig
+        c.ts_node_edit(&n.raw, @ptrCast(e)); // aegis: no-danger: InputEdit has c.InputEdit's layout, asserted in types.zig
     }
 
     pub fn eql(a: Node, b: Node) bool {
@@ -210,6 +210,6 @@ pub const Node = extern struct {
     }
 };
 
-fn toC(p: Point) c.TSPoint {
+fn toC(p: Point) c.Point {
     return .{ .row = p.row, .column = p.column };
 }

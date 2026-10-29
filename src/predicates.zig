@@ -82,7 +82,7 @@ pub const Failure = struct {
 /// string table lives as long as it does.
 pub fn compilePattern(
     gpa: std.mem.Allocator,
-    query: *const c.TSQuery,
+    query: *const c.Query,
     pattern_index: u32,
     dialect: Dialect,
     passthrough: []const []const u8,
@@ -90,7 +90,7 @@ pub fn compilePattern(
 ) CompileError!Pattern {
     var count: u32 = 0;
     const steps_ptr = c.ts_query_predicates_for_pattern(query, pattern_index, &count);
-    const steps: []const c.TSQueryPredicateStep = if (steps_ptr) |p| p[0..count] else &.{};
+    const steps: []const c.QueryPredicateStep = if (steps_ptr) |p| p[0..count] else &.{};
 
     var filters: std.ArrayList(Filter) = .empty;
     var properties: std.ArrayList(Property) = .empty;
@@ -179,7 +179,7 @@ fn deinitFilter(gpa: std.mem.Allocator, f: *Filter) void {
     }
 }
 
-fn string(query: *const c.TSQuery, id: u32) []const u8 {
+fn string(query: *const c.Query, id: u32) []const u8 {
     var len: u32 = 0;
     const p = c.ts_query_string_value_for_id(query, id, &len);
     return p[0..len];
@@ -292,7 +292,7 @@ pub const Capture = extern struct {
     index: u32,
 
     comptime {
-        std.debug.assert(@sizeOf(Capture) == @sizeOf(c.TSQueryCapture));
+        std.debug.assert(@sizeOf(Capture) == @sizeOf(c.QueryCapture));
     }
 };
 
@@ -341,7 +341,7 @@ fn kindIn(n: Node, kinds: []const []const u8) bool {
 
 fn hasAncestor(n: Node, kinds: []const []const u8) bool {
     // Down from the root, as Neovim's __has_ancestor does: one descent.
-    const tree: *const c.TSTree = n.raw.tree orelse return false;
+    const tree: *const c.Tree = n.raw.tree orelse return false;
     var at: Node = .{ .raw = c.ts_tree_root_node(tree) };
     while (!at.eql(n)) {
         if (kindIn(at, kinds)) return true;
@@ -352,7 +352,7 @@ fn hasAncestor(n: Node, kinds: []const []const u8) bool {
 
 fn substring(haystack: []const u8, needles: []const []const u8, any: bool) bool {
     for (needles) |needle| {
-        const found = std.mem.indexOf(u8, haystack, needle) != null;
+        const found = std.mem.find(u8, haystack, needle) != null;
         if (any and found) return true;
         if (!any and !found) return false;
     }

@@ -9,10 +9,10 @@ const c = @import("c.zig");
 /// A linked language is static data, valid for the process and shareable
 /// across threads. A loaded one (`load`) is valid until `unload`.
 pub const Language = struct {
-    ptr: *const c.TSLanguage,
+    ptr: *const c.Language,
     library: ?std.DynLib = null,
 
-    pub fn fromC(ptr: *const c.TSLanguage) Language {
+    pub fn fromC(ptr: *const c.Language) Language {
         return .{ .ptr = ptr };
     }
 
@@ -23,7 +23,7 @@ pub const Language = struct {
     pub fn load(path: []const u8, symbol: [:0]const u8) LoadError!Language {
         var lib = try std.DynLib.open(path);
         errdefer lib.close();
-        const f = lib.lookup(*const fn () callconv(.c) *const c.TSLanguage, symbol) orelse return error.SymbolNotFound;
+        const f = lib.lookup(*const fn () callconv(.c) *const c.Language, symbol) orelse return error.SymbolNotFound;
         return .{ .ptr = f(), .library = lib };
     }
 
@@ -132,7 +132,7 @@ pub const Grammar = struct {
     name: []const u8,
     /// The function `parser.c` exports. Null when the grammar was built as a
     /// shared library; load it with `Language.load(path, symbol)`.
-    language_fn: ?*const fn () callconv(.c) *const c.TSLanguage = null,
+    language_fn: ?*const fn () callconv(.c) *const c.Language = null,
     symbol: []const u8,
     /// SPDX identifier, or "unknown".
     licence: []const u8,

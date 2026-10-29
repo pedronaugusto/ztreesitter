@@ -40,7 +40,7 @@ defer cursor.deinit();
 var captures = cursor.captures(io, &query, tree.rootNode(), .{ .slice = source }, .{});
 while (try captures.next()) |event| {
     const name = query.captureName(event.capture().index);
-    std.debug.print("{s:<24} {s}\n", .{ name, event.node().text(source) });
+    try out.print("{s:<24} {s}\n", .{ name, event.node().text(source) });
 }
 ```
 <!-- END GENERATED -->

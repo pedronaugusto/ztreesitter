@@ -189,6 +189,7 @@ fn benchImports(b: *std.Build, target: std.Build.ResolvedTarget, optimize: std.l
     return b.allocator.dupe(std.Build.Module.Import, &.{
         .{ .name = "ztreesitter", .module = module },
         .{ .name = "grammars", .module = grammars },
+        .{ .name = "samples", .module = b.createModule(.{ .root_source_file = package.builder.path("tests/samples.zig"), .target = target, .optimize = optimize }) },
     }) catch @panic("OOM");
 }
 
@@ -240,7 +241,7 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
     const gpa = b.allocator;
 
     // The names, then their `requires`, kept in catalogue order.
-    var wanted: std.StringArrayHashMapUnmanaged(void) = .empty;
+    var wanted: std.array_hash_map.String(void) = .empty;
     var pending: std.ArrayList([]const u8) = .empty;
     for (names) |name| {
         if (std.mem.eql(u8, name, "none")) continue;
@@ -273,15 +274,15 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
     const deps = gpa.alloc(?*std.Build.Dependency, selected.items.len) catch @panic("OOM");
     var wants_helix = false;
     for (selected.items, deps) |g, *dep| {
-        dep.* = owner.lazyDependency(b.fmt("grammar_{s}", .{g.name}), .{});
+        dep.* = owner.dependencyLazy(b.fmt("grammar_{s}", .{g.name}), .{}) catch null;
         if (dep.* == null) missing = true;
         for (g.queries.tags) |q| {
             if (q.source == .helix) wants_helix = true;
         }
     }
-    const nvim = if (selected.items.len != 0) owner.lazyDependency("nvim_treesitter", .{}) else null;
+    const nvim = if (selected.items.len != 0) owner.dependencyLazy("nvim_treesitter", .{}) catch null else null;
     if (selected.items.len != 0 and nvim == null) missing = true;
-    const helix = if (wants_helix) owner.lazyDependency("helix", .{}) else null;
+    const helix = if (wants_helix) owner.dependencyLazy("helix", .{}) catch null else null;
     if (wants_helix and helix == null) missing = true;
     if (missing) return null;
 
@@ -313,7 +314,7 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
 
         appendFmt(b, &source, "pub const @\"{s}\": ts.Grammar = .{{\n    .name = \"{s}\",\n    .symbol = \"{s}\",\n", .{ g.name, g.name, g.symbol });
         if (options.linkage == .static) {
-            appendFmt(b, &source, "    .language_fn = @extern(*const fn () callconv(.c) *const ts.c.TSLanguage, .{{ .name = \"{s}\" }}),\n", .{g.symbol});
+            appendFmt(b, &source, "    .language_fn = @extern(*const fn () callconv(.c) *const ts.c.Language, .{{ .name = \"{s}\" }}),\n", .{g.symbol});
         }
         appendFmt(b, &source, "    .licence = \"{s}\",\n    .url = \"{s}\",\n    .commit = \"{s}\",\n    .queries = .{{\n", .{ g.licence, g.url, g.commit });
         inline for (@typeInfo(schema.Queries).@"struct".field_names) |field_name| {

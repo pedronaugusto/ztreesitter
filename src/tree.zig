@@ -10,7 +10,7 @@ const memory = @import("memory.zig");
 /// reference-counted handle for use on another thread; a tree handle itself
 /// is used by one thread at a time.
 pub const Tree = struct {
-    raw: *c.TSTree,
+    raw: *c.Tree,
 
     pub fn deinit(t: *Tree) void {
         c.ts_tree_delete(t.raw);
@@ -38,7 +38,7 @@ pub const Tree = struct {
     /// Adjust the tree for an edit to its text, before re-parsing with it as
     /// the old tree. Nodes taken from it before the edit are invalid after.
     pub fn edit(t: *Tree, e: types.InputEdit) void {
-        c.ts_tree_edit(t.raw, @ptrCast(&e)); // safe: InputEdit is TSInputEdit's layout, asserted in types.zig
+        c.ts_tree_edit(t.raw, @ptrCast(&e)); // aegis: no-danger: InputEdit has c.InputEdit's layout, asserted in types.zig
     }
 
     /// The ranges the tree was parsed over. Free with `RangeList.deinit`.
@@ -61,10 +61,10 @@ pub const Tree = struct {
 /// own free function, which is not necessarily libc's.
 pub const RangeList = struct {
     items: []const types.Range,
-    raw: ?[*]c.TSRange,
+    raw: ?[*]c.Range,
 
-    fn init(p: ?[*]c.TSRange, n: u32) RangeList {
-        const items: []const types.Range = if (p) |q| @as([*]const types.Range, @ptrCast(q))[0..n] else &.{}; // safe: Range is TSRange's layout, asserted in types.zig
+    fn init(p: ?[*]c.Range, n: u32) RangeList {
+        const items: []const types.Range = if (p) |q| @as([*]const types.Range, @ptrCast(q))[0..n] else &.{}; // aegis: no-danger: Range has c.Range's layout, asserted in types.zig
         return .{ .items = items, .raw = p };
     }
 

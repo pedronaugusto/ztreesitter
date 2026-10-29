@@ -14,14 +14,16 @@
     "shakedown"
   ],
   "shipped": {
-    "libs": "the vendored tree-sitter runtime: the library's one translation unit is lib/src/lib.c, and the installed headers are its files"
+    "libs": "the vendored tree-sitter runtime: the library's one translation unit is lib/src/lib.c, and the installed headers are its files",
+    "LICENSES.md": "the licences of the vendored runtime and of the catalogue's grammars, which a copy of the package carries with their code",
+    "UPSTREAM.md": "the vendored runtime's provenance: its tag and commit, and the one difference this build makes to it"
   },
   "docs": {
     "zig build docs -- usage": {
       "source": "examples/usage.zig",
       "region": "usage",
       "imports": [
-        "ztreesitter",
+        "ts",
         "grammars"
       ]
     }
@@ -37,6 +39,82 @@
     "rules": [
       {
         "id": "P003",
+        "level": "gate"
+      },
+      {
+        "id": "A001",
+        "level": "gate"
+      },
+      {
+        "id": "A002",
+        "level": "gate"
+      },
+      {
+        "id": "A003",
+        "level": "gate"
+      },
+      {
+        "id": "A004",
+        "level": "gate"
+      },
+      {
+        "id": "A005",
+        "level": "gate"
+      },
+      {
+        "id": "A006",
+        "level": "gate"
+      },
+      {
+        "id": "A007",
+        "level": "gate"
+      },
+      {
+        "id": "A008",
+        "level": "gate"
+      },
+      {
+        "id": "A011",
+        "level": "gate"
+      },
+      {
+        "id": "A012",
+        "level": "gate"
+      },
+      {
+        "id": "A013",
+        "level": "gate"
+      },
+      {
+        "id": "A014",
+        "level": "gate"
+      },
+      {
+        "id": "A015",
+        "level": "gate"
+      },
+      {
+        "id": "A016",
+        "level": "gate"
+      },
+      {
+        "id": "A017",
+        "level": "gate"
+      },
+      {
+        "id": "A018",
+        "level": "gate"
+      },
+      {
+        "id": "A019",
+        "level": "gate"
+      },
+      {
+        "id": "A020",
+        "level": "gate"
+      },
+      {
+        "id": "A021",
         "level": "gate"
       },
       {

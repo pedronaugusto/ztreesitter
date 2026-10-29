@@ -117,7 +117,7 @@ const Parser = struct {
     fn codepoint(p: *Parser) Error!u21 {
         const len = std.unicode.utf8ByteSequenceLength(p.src[p.pos]) catch return error.InvalidPattern;
         if (p.pos + len > p.src.len) return error.InvalidPattern;
-        const cp = std.unicode.utf8Decode(p.src[p.pos..][0..len]) catch return error.InvalidPattern;
+        const cp = decodeUtf8(p.src[p.pos..][0..len]) catch return error.InvalidPattern;
         p.pos += len;
         return cp;
     }
@@ -405,7 +405,7 @@ const Parser = struct {
     }
 
     fn posixClass(p: *Parser, ranges: *std.ArrayList([2]u21)) Error!void {
-        const end = std.mem.indexOfPos(u8, p.src, p.pos + 2, ":]") orelse return error.InvalidPattern;
+        const end = std.mem.findPos(u8, p.src, p.pos + 2, ":]") orelse return error.InvalidPattern;
         const name = p.src[p.pos + 2 .. end];
         p.pos = end + 2;
         const table = [_]struct { []const u8, []const [2]u21 }{
@@ -554,6 +554,17 @@ const Set = struct {
 
 const eof: u21 = std.math.maxInt(u21);
 
+/// One UTF-8 sequence of one to four bytes, its length read from its first.
+fn decodeUtf8(bytes: []const u8) error{InvalidUtf8}!u21 {
+    return switch (bytes.len) {
+        1 => bytes[0],
+        2 => std.unicode.utf8Decode2(bytes[0..2].*) catch error.InvalidUtf8,
+        3 => std.unicode.utf8Decode3(bytes[0..3].*) catch error.InvalidUtf8,
+        4 => std.unicode.utf8Decode4(bytes[0..4].*) catch error.InvalidUtf8,
+        else => error.InvalidUtf8,
+    };
+}
+
 fn isWord(cp: u21) bool {
     return cp != eof and cp < 128 and (std.ascii.isAlphanumeric(@intCast(cp)) or cp == '_');
 }
@@ -700,7 +711,7 @@ pub const Matcher = struct {
                 continue;
             };
             if (m.carry_len < want) continue;
-            const cp = std.unicode.utf8Decode(m.carry[0..want]) catch m.carry[0];
+            const cp = decodeUtf8(m.carry[0..want]) catch m.carry[0];
             m.carry_len = 0;
             m.push(cp);
         }
@@ -726,7 +737,7 @@ fn expectMatch(dialect: Dialect, pattern: []const u8, text: []const u8, want: bo
     var p = try compile(gpa, pattern, dialect);
     defer p.deinit(gpa);
     if (p.isMatch(text) != want) {
-        std.debug.print("{s} /{s}/ on \"{s}\": expected {}\n", .{ @tagName(dialect), pattern, text, want });
+        std.log.err("{s} /{s}/ on \"{s}\": expected {}", .{ @tagName(dialect), pattern, text, want });
         return error.TestUnexpectedResult;
     }
     // The same answer fed one byte at a time.

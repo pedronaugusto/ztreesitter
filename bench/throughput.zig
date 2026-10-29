@@ -1,78 +1,78 @@
-//! Parse and tags-query throughput on real files.
+//! Parse and tags-query throughput, measured through shakedown: for each
+//! grammar built, `parse/<grammar>` parses its sample repeated to about
+//! 1 MiB, and `tags/<grammar>` parses it and collects its tags, when the
+//! catalogue gives the grammar a tags query. One row each; a unit is one pass.
 //!
-//!     zig build bench -Doptimize=ReleaseFast -Dgrammars=c,swift -- c big.c swift big.swift
-//!
-//! For each (grammar, file) pair: the best of five full parses, and the best
-//! of five parse-plus-tags runs, in MB/s. Tags are the grammar's own query,
-//! or Helix's, as the catalogue chose.
+//!   throughput [--smoke] [--row <prefix>]
 
 const std = @import("std");
+const Io = std.Io;
 const ts = @import("ztreesitter");
 const grammars = @import("grammars");
+const samples = @import("samples");
+const shakedown = @import("shakedown");
+const provenance = @import("preflight_bench_options");
+
+const target_len = 1 << 20;
+
+const Error = ts.Parser.ParseError || ts.IterateError || std.mem.Allocator.Error;
+
+const Work = struct {
+    gpa: std.mem.Allocator,
+    io: Io,
+    text: []const u8,
+    parser: ts.Parser,
+    tags: ?ts.Tags,
+    cursor: ts.QueryCursor,
+    out: std.ArrayList(ts.Tag) = .empty,
+
+    fn parse(w: *Work, units: u64) Error!void {
+        for (0..units) |_| {
+            var tree = try w.parser.parse(w.io, .{ .slice = w.text }, null, .{});
+            tree.deinit();
+        }
+    }
+
+    fn tagged(w: *Work, units: u64) Error!void {
+        for (0..units) |_| {
+            w.out.clearRetainingCapacity();
+            var tree = try w.parser.parse(w.io, .{ .slice = w.text }, null, .{});
+            defer tree.deinit();
+            try w.tags.?.collect(w.gpa, w.io, &w.cursor, tree.rootNode(), .{ .slice = w.text }, &w.out);
+        }
+    }
+};
 
 pub fn main(init: std.process.Init) !void {
     const gpa = init.gpa;
     const io = init.io;
-    const args = try init.minimal.args.toSlice(init.arena.allocator());
-    if (args.len < 3 or (args.len - 1) % 2 != 0) {
-        std.debug.print("usage: throughput GRAMMAR FILE [GRAMMAR FILE...]\n", .{});
-        return;
-    }
-    std.debug.print("{s:<12} {s:<36} {s:>9} {s:>10} {s:>12} {s:>7}\n", .{ "grammar", "file", "MB", "parse MB/s", "+tags MB/s", "tags" });
-    var i: usize = 1;
-    while (i + 1 < args.len) : (i += 2) {
-        const name = args[i];
-        const path = args[i + 1];
-        const g = for (grammars.list) |g| {
-            if (std.mem.eql(u8, g.name, name)) break g;
-        } else {
-            std.debug.print("{s}: not built; add it to -Dgrammars\n", .{name});
-            continue;
-        };
-        const text = try std.Io.Dir.cwd().readFileAlloc(io, path, gpa, .unlimited);
-        defer gpa.free(text);
-        const mb = @as(f64, @floatFromInt(text.len)) / (1024 * 1024);
+    const arena = init.arena.allocator();
+    const arguments = try init.minimal.args.toSlice(arena);
+    const options = try shakedown.bench.Options.fromArguments(arguments[1..]);
+    var buffer: [4096]u8 = undefined;
+    var stdout = Io.File.stdout().writerStreaming(io, &buffer);
 
-        var parser: ts.Parser = .init();
-        defer parser.deinit();
-        try parser.setLanguage(g.language());
+    for (grammars.list) |g| {
+        const sample = samples.find(g.name) orelse continue;
+        // The sample repeated: one text the size of a large source file.
+        const copies = if (options.smoke) 1 else @max(1, target_len / sample.len);
+        const text = try arena.alloc(u8, sample.len * copies);
+        for (0..copies) |i| @memcpy(text[i * sample.len ..][0..sample.len], sample);
 
-        var best_parse: f64 = std.math.inf(f64);
-        for (0..5) |_| {
-            const t0 = std.Io.Clock.Timestamp.now(io, .awake);
-            var tree = try parser.parse(io, .{ .slice = text }, null, .{});
-            const dt = seconds(t0.durationTo(std.Io.Clock.Timestamp.now(io, .awake)));
-            tree.deinit();
-            best_parse = @min(best_parse, dt);
+        var work: Work = .{ .gpa = gpa, .io = io, .text = text, .parser = .init(), .tags = null, .cursor = try .init(gpa) };
+        defer {
+            work.out.deinit(gpa);
+            work.cursor.deinit();
+            if (work.tags) |*t| t.deinit();
+            work.parser.deinit();
         }
+        try work.parser.setLanguage(g.language());
+        if (g.queries.tags) |q| work.tags = try ts.Tags.init(gpa, g.language(), q);
 
-        var best_tags: f64 = std.math.nan(f64);
-        var tag_count: usize = 0;
-        if (g.queries.tags) |q| {
-            var tags = try ts.Tags.init(gpa, g.language(), q);
-            defer tags.deinit();
-            var cursor = try ts.QueryCursor.init(gpa);
-            defer cursor.deinit();
-            var out: std.ArrayList(ts.Tag) = .empty;
-            defer out.deinit(gpa);
-            best_tags = std.math.inf(f64);
-            for (0..5) |_| {
-                out.clearRetainingCapacity();
-                const t0 = std.Io.Clock.Timestamp.now(io, .awake);
-                var tree = try parser.parse(io, .{ .slice = text }, null, .{});
-                try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = text }, &out);
-                const dt = seconds(t0.durationTo(std.Io.Clock.Timestamp.now(io, .awake)));
-                tree.deinit();
-                best_tags = @min(best_tags, dt);
-            }
-            tag_count = out.items.len;
-        }
-        std.debug.print("{s:<12} {s:<36} {d:>9.2} {d:>10.1} {d:>12.1} {d:>7}\n", .{
-            name, std.fs.path.basename(path), mb, mb / best_parse, mb / best_tags, tag_count,
-        });
+        var rows: std.ArrayList(shakedown.bench.Row(Work, Error)) = .empty;
+        try rows.append(arena, .{ .name = try arena.print("parse/{s}", .{g.name}), .unit = "pass", .run = Work.parse });
+        if (work.tags != null) try rows.append(arena, .{ .name = try arena.print("tags/{s}", .{g.name}), .unit = "pass", .run = Work.tagged });
+        try shakedown.bench.run(Error, gpa, io, &stdout.interface, &work, rows.items, .{ .commit = provenance.commit }, options);
     }
-}
-
-fn seconds(d: std.Io.Clock.Duration) f64 {
-    return @as(f64, @floatFromInt(d.raw.nanoseconds)) / 1e9;
+    try stdout.interface.flush();
 }
