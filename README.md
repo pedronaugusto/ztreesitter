@@ -69,7 +69,8 @@ The module it returns has one `ts.Grammar` per grammar (`grammars.zig`,
 `grammars.swift`, and `grammars.list`), each with its language, its queries,
 its licence and where it comes from. Grammars a named one needs, such as
 markdown_inline for markdown, are added. `"all"` names every grammar the
-catalogue does not exclude.
+catalogue does not exclude, but for the GPL and LGPL ones, which a program
+gets only by naming them ([LICENSES.md](LICENSES.md)).
 
 Grammars are an application's choice. A library built on ztreesitter takes
 an option-free dependency and receives `ts.Grammar` values at run time:

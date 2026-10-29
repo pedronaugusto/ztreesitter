@@ -29,6 +29,8 @@ the source of those files: point them at the Helix commit in
 GPL-3.0 (caddy, disassembly, objdump, usd, and rnoweb by declaration),
 LGPL-3.0 (ralph), LGPL-2.1 (vala), MPL-2.0 (nim, inko), Artistic-2.0 (pod) —
 and 23 that ship no licence file, only a declaration in `package.json` or
-`tree-sitter.json`. `docs/grammars.md` lists each, with what the licence file
-says and what the repository declares where the two disagree. Nothing is
-compiled unless a program names it.
+`tree-sitter.json`, and are recorded under that declaration (tree-sitter.json's
+where the two differ). `docs/grammars.md` lists each, with what the licence
+file says and what the repository declares where the two disagree. Nothing is
+compiled unless a program names it, and `addGrammars(.., "all")` leaves out
+the GPL, LGPL and AGPL grammars: a program gets one only by naming it.

@@ -376,9 +376,17 @@ fn jsonGet(v: std.json.Value, key: []const u8) ?std.json.Value {
     };
 }
 
+const Declared = struct {
+    /// Each declaration once, sorted.
+    all: []const []const u8,
+    /// tree-sitter.json's, else package.json's: tree-sitter.json is the
+    /// grammar's own metadata.
+    first: ?[]const u8,
+};
+
 /// `license` from tree-sitter.json's metadata and from package.json, the
 /// first directory that has each file winning.
-fn declaredLicences(ctx: *github.Context, dirs: []const []const u8) ![]const []const u8 {
+fn declaredLicences(ctx: *github.Context, dirs: []const []const u8) !Declared {
     var found: [2]?[]const u8 = .{ null, null };
     for (dirs) |d| {
         for ([_][]const u8{ "tree-sitter.json", "package.json" }, 0..) |name, k| {
@@ -402,7 +410,7 @@ fn declaredLicences(ctx: *github.Context, dirs: []const []const u8) ![]const []c
         } else try out.append(ctx.arena, s);
     };
     std.mem.sort([]const u8, out.items, {}, github.lessThan);
-    return out.items;
+    return .{ .all = out.items, .first = found[0] orelse found[1] };
 }
 
 const Licence = struct {
@@ -444,7 +452,8 @@ fn licenceOf(ctx: *github.Context, repo: []const u8, grammar_dir: []const u8) !L
             if (first_known == null) first_known = kind;
         }
     }
-    const declared = try declaredLicences(ctx, dirs);
+    const declarations = try declaredLicences(ctx, dirs);
+    const declared = declarations.all;
     const joined = try std.mem.join(ctx.arena, ", ", declared);
     var note: []const u8 = "";
     var spdx: []const u8 = "unknown";
@@ -458,7 +467,9 @@ fn licenceOf(ctx: *github.Context, repo: []const u8, grammar_dir: []const u8) !L
     } else if (any_file) {
         note = "licence file not recognised";
         if (declared.len != 0) note = try ctx.arena.print("{s}; declared {s}", .{ note, joined });
-    } else if (declared.len != 0) {
+    } else if (declarations.first) |first| {
+        // No licence file: the grammar ships on what it declares.
+        spdx = first;
         note = try ctx.arena.print("no licence file; declared {s}", .{joined});
     } else {
         note = "no licence file and no declaration";

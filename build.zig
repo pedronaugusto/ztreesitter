@@ -288,7 +288,9 @@ pub const GrammarOptions = struct {
 /// the first configure pass while their lazy dependencies are fetched.
 ///
 /// `names` are catalogue names, or `"all"` for every grammar that is not
-/// excluded (each excluded one is printed with its reason). Each grammar's
+/// excluded (each excluded one is printed with its reason) and not under the
+/// GPL, LGPL or AGPL: those are built only when named, since linking one puts
+/// the program under its terms. Each grammar's
 /// `requires` are added. Call it once, from the application's build:
 /// grammars are the application's choice, and every library in it shares
 /// one ztreesitter.
@@ -307,6 +309,15 @@ fn isQueryOnly(name: []const u8) bool {
     return false;
 }
 
+/// GPL, LGPL and AGPL grammars, which `all` leaves out: linked into a
+/// program, they put the program under their terms.
+fn copyleft(spdx: []const u8) bool {
+    for ([_][]const u8{ "GPL-", "LGPL-", "AGPL-" }) |family| {
+        if (std.mem.startsWith(u8, spdx, family)) return true;
+    }
+    return false;
+}
+
 /// The named grammars and their `requires`, in catalogue order.
 fn selectGrammars(b: *std.Build, names: []const []const u8) []const *const schema.Grammar {
     const gpa = b.allocator;
@@ -317,7 +328,7 @@ fn selectGrammars(b: *std.Build, names: []const []const u8) []const *const schem
         if (std.mem.eql(u8, name, "all")) {
             for (catalogue.grammars) |g| switch (g.status) {
                 .excluded => std.log.warn("ztreesitter: {s} is excluded: {s}", .{ g.name, g.reason }),
-                else => pending.append(gpa, g.name) catch @panic("OOM"),
+                else => if (!copyleft(g.licence)) pending.append(gpa, g.name) catch @panic("OOM"),
             };
             continue;
         }
