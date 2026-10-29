@@ -5,7 +5,8 @@
   ],
   "test_roots": [
     "src/ztreesitter.zig",
-    "tests/tests.zig"
+    "tests/tests.zig",
+    "src/fuzz_test.zig"
   ],
   "test_support": [
     "tests/samples.zig"
