@@ -4,7 +4,8 @@
 //!
 //!   upstream vendor ROOT CACHE ZIG
 //!       libs/tree-sitter's LICENSE, lib/include and lib/src are the pinned
-//!       tag's, byte for byte, with nothing added or missing.
+//!       tag's with libs/tree-sitter.patch applied, byte for byte, with
+//!       nothing added or missing.
 //!   upstream mirror CACHE ZIG (NAME URL COMMIT DIR)...
 //!       Every file of each grammar mirror DIR is the grammar repository's at
 //!       COMMIT, unmodified, but PROVENANCE and the generated parsers it
@@ -19,8 +20,11 @@ const github = @import("github.zig");
 const runtime_url = "https://github.com/tree-sitter/tree-sitter";
 const runtime_tag = "v0.27.0";
 const runtime_commit = "6070dbfefd326bd735e5683eb128cc1b57dad0c0";
-/// Paths copied verbatim, relative to upstream's root and to libs/tree-sitter.
+/// Paths copied, relative to upstream's root and to libs/tree-sitter.
 const vendored = [_][]const u8{ "LICENSE", "lib/include", "lib/src" };
+/// The changes to them, a unified diff against upstream's root that UPSTREAM.md
+/// describes change by change.
+const patch_path = "libs/tree-sitter.patch";
 
 pub fn main(init: std.process.Init) !u8 {
     const arena = init.arena.allocator();
@@ -63,6 +67,8 @@ fn vendor(ctx: *github.Context, out: *Io.Writer, root: []const u8) !u8 {
         return 1;
     }
     const upstream = try github.download(ctx, runtime_url, runtime_commit);
+    const patched = try applyPatch(ctx, upstream, ctx.path(&.{ root, patch_path }));
+    defer github.remove(ctx, patched.root);
     const local = ctx.path(&.{ root, "libs", "tree-sitter" });
 
     var differ = false;
@@ -70,19 +76,58 @@ fn vendor(ctx: *github.Context, out: *Io.Writer, root: []const u8) !u8 {
         const ours = ctx.path(&.{ local, path });
         const theirs = ctx.path(&.{ upstream, path });
         const same = if (github.isDir(ctx.io, theirs))
-            try sameTree(ctx, out, theirs, ours)
+            try sameTree(ctx, out, &patched, upstream, path, ours)
         else
-            try github.sameFile(ctx, theirs, ours);
+            try github.sameFile(ctx, patched.source(ctx, upstream, path), ours);
         try out.print("  {s} {s}\n", .{ path, if (same) "identical" else "DIFFERS" });
         if (!same) differ = true;
     }
     return @intFromBool(differ);
 }
 
-/// The two trees hold the same regular files with the same bytes. Each
-/// difference is printed.
-fn sameTree(ctx: *github.Context, out: *Io.Writer, theirs: []const u8, ours: []const u8) !bool {
-    const a = try github.regularFiles(ctx, theirs);
+/// Upstream's files the patch changes, copied to `root` and patched there.
+const Patched = struct {
+    root: []const u8,
+    /// Relative to upstream's root, with `/` separators.
+    paths: []const []const u8,
+
+    /// Where to read upstream's `rel` with the patch applied.
+    fn source(p: *const Patched, ctx: *github.Context, upstream: []const u8, rel: []const u8) []const u8 {
+        for (p.paths) |changed| {
+            if (std.mem.eql(u8, changed, rel)) return ctx.path(&.{ p.root, rel });
+        }
+        return ctx.path(&.{ upstream, rel });
+    }
+};
+
+/// Copies the files `patch` changes out of `upstream` and applies it to the
+/// copies with `git apply`, outside any repository (the cache sits inside
+/// this one), so it applies as a plain patch.
+fn applyPatch(ctx: *github.Context, upstream: []const u8, patch: []const u8) !Patched {
+    const text = try github.readFile(ctx, ctx.arena, patch);
+    var paths: std.ArrayList([]const u8) = .empty;
+    var lines = std.mem.splitScalar(u8, text, '\n');
+    while (lines.next()) |line| {
+        const prefix = "+++ b/";
+        if (std.mem.startsWith(u8, line, prefix)) try paths.append(ctx.arena, line[prefix.len..]);
+    }
+    const root = try ctx.temporary();
+    for (paths.items) |rel| {
+        const to = ctx.path(&.{ root, rel });
+        try Io.Dir.cwd().createDirPath(ctx.io, std.fs.path.dirname(to).?);
+        try Io.Dir.copyFile(Io.Dir.cwd(), ctx.path(&.{ upstream, rel }), Io.Dir.cwd(), to, ctx.io, .{});
+    }
+    var env = try ctx.environ.clone(ctx.arena);
+    try env.put("GIT_CEILING_DIRECTORIES", std.fs.path.dirname(root).?);
+    const absolute = try Io.Dir.cwd().realPathFileAlloc(ctx.io, patch, ctx.arena);
+    _ = try github.runChecked(ctx, &.{ "git", "apply", absolute }, .{ .cwd = root, .environ = &env });
+    return .{ .root = root, .paths = paths.items };
+}
+
+/// The two trees hold the same regular files with the same bytes, `theirs`
+/// with the patch applied. Each difference is printed.
+fn sameTree(ctx: *github.Context, out: *Io.Writer, patched: *const Patched, upstream: []const u8, prefix: []const u8, ours: []const u8) !bool {
+    const a = try github.regularFiles(ctx, ctx.path(&.{ upstream, prefix }));
     const b = try github.regularFiles(ctx, ours);
     var same = true;
     var i: usize = 0;
@@ -101,7 +146,8 @@ fn sameTree(ctx: *github.Context, out: *Io.Writer, theirs: []const u8, ours: []c
                 same = false;
             },
             .eq => {
-                if (!try github.sameFile(ctx, ctx.path(&.{ theirs, a[i] }), ctx.path(&.{ ours, b[j] }))) {
+                const rel = try std.mem.join(ctx.arena, "/", &.{ prefix, a[i] });
+                if (!try github.sameFile(ctx, patched.source(ctx, upstream, rel), ctx.path(&.{ ours, b[j] }))) {
                     try out.print("    differs: {s}\n", .{a[i]});
                     same = false;
                 }

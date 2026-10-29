@@ -5,7 +5,8 @@
   ],
   "test_roots": [
     "src/ztreesitter.zig",
-    "tests/tests.zig"
+    "tests/tests.zig",
+    "src/fuzz_test.zig"
   ],
   "test_support": [
     "tests/samples.zig"
@@ -14,9 +15,9 @@
     "shakedown"
   ],
   "shipped": {
-    "libs": "the vendored tree-sitter runtime: the library's one translation unit is lib/src/lib.c, and the installed headers are its files",
+    "libs": "the vendored tree-sitter runtime and the patch it carries (libs/tree-sitter.patch): the library's one translation unit is lib/src/lib.c, and the installed headers are its files",
     "LICENSES.md": "the licences of the vendored runtime and of the catalogue's grammars, which a copy of the package carries with their code",
-    "UPSTREAM.md": "the vendored runtime's provenance: its tag and commit, and the one difference this build makes to it"
+    "UPSTREAM.md": "the vendored runtime's provenance: its tag and commit, the fix libs/tree-sitter.patch carries, and the one difference this build makes to it"
   },
   "docs": {
     "zig build docs -- usage": {

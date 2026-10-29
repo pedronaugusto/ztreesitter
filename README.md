@@ -200,11 +200,19 @@ long and UTF-16 reader text, tag definitions in C, Swift and C# and
 references in Rust, a deadline that pauses and resumes a parse, a canceled
 parse, and the allocator seam's balance.
 
+Fuzz targets, as shakedown properties: any bytes parse, and parse to the same
+tree from a reader in any pieces; any query source compiles or is refused;
+`eq?` holds exactly for equal texts from a slice, a reader and UTF-16; a
+regular expression in either dialect compiles or is refused and answers the
+same fed in pieces; and matching never refuses a Lua pattern validation
+accepted, though it may stop at the step budget.
+
 `bench/throughput.zig` measures parse and parse-plus-tags throughput for each
 grammar built, through preflight's `bench` step.
 
 Two checks need the network and run on their own: `zig build check-vendor`
-compares `libs/tree-sitter` with the pinned upstream commit, and
+compares `libs/tree-sitter` with the pinned upstream commit plus
+`libs/tree-sitter.patch` (one fix, described in UPSTREAM.md), and
 `zig build verify-mirror` compares each selected grammar's mirror with its
 repository at the catalogued commit (`-Dgrammars=all` for every one).
 

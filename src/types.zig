@@ -80,6 +80,9 @@ pub const Input = union(enum) {
         /// The bytes starting at `byte`, as many as are contiguous there; an
         /// empty slice at or past the end. `point` is the position of `byte`
         /// and may be ignored. The slice must stay valid until the next call.
+        /// A slice must not end inside a character: the lexer reads each
+        /// character whole from the slice it starts in, and reads a split
+        /// one as invalid.
         read: *const fn (reader: *const Reader, byte: u32, point: Point) []const u8,
         encoding: Encoding = .utf8,
     };

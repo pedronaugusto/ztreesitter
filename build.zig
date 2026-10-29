@@ -124,6 +124,19 @@ pub fn dev(b: *std.Build, tools: type) void {
         }),
     });
     unit.root_module.linkLibrary(package.artifact("tree-sitter"));
+    // The pattern languages' fuzz targets, shakedown properties, beside the
+    // code they reach.
+    const shakedown = b.dependency("shakedown", .{ .target = target, .optimize = optimize }).module("shakedown");
+    const fuzz = b.addTest(.{
+        .name = "ztreesitter-fuzz",
+        .filters = filters,
+        .root_module = b.createModule(.{
+            .root_source_file = p.path("src/fuzz_test.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{.{ .name = "shakedown", .module = shakedown }},
+        }),
+    });
     // The ABI guard reads the header through translate-c; wired on the test
     // module only, so the shipped module never translates C.
     const api_h = b.addTranslateC(.{ .root_source_file = p.path("libs/tree-sitter/lib/include/tree_sitter/api.h"), .target = target, .optimize = optimize });
@@ -141,17 +154,20 @@ pub fn dev(b: *std.Build, tools: type) void {
                 .{ .name = "ztreesitter", .module = module },
                 .{ .name = "ztreesitter.catalogue", .module = b.createModule(.{ .root_source_file = p.path("grammars/catalogue.zig"), .target = target, .optimize = optimize }) },
                 .{ .name = "grammars", .module = grammars_module },
+                .{ .name = "shakedown", .module = shakedown },
             },
         }),
     });
 
     const test_step = b.step("test", "Run the tests and the example");
     test_step.dependOn(&b.addRunArtifact(unit).step);
+    test_step.dependOn(&b.addRunArtifact(fuzz).step);
     const run_tests = b.addRunArtifact(tests);
     run_tests.setCwd(p.path("."));
     test_step.dependOn(&run_tests.step);
     const check = b.step("check", "Compile the tests and the example without running them");
     check.dependOn(&unit.step);
+    check.dependOn(&fuzz.step);
     check.dependOn(&tests.step);
 
     const example = b.addExecutable(.{
@@ -210,7 +226,7 @@ pub fn dev(b: *std.Build, tools: type) void {
     vendor.addDirectoryArg2(p.path("."), .{});
     vendor.addDirectoryArg2(upstream_cache, .{});
     vendor.addFileArg(.zig_exe);
-    b.step("check-vendor", "Compare libs/tree-sitter with the pinned upstream commit (network)").dependOn(&vendor.step);
+    b.step("check-vendor", "Compare libs/tree-sitter with the pinned upstream commit plus libs/tree-sitter.patch (network)").dependOn(&vendor.step);
 
     const mirror = b.addRunArtifact(upstream);
     mirror.has_side_effects = true;

@@ -6,6 +6,7 @@ const ts = @import("ztreesitter");
 const grammars = @import("grammars");
 const catalogue = @import("ztreesitter.catalogue");
 const samples = @import("samples.zig");
+const shakedown = @import("shakedown");
 
 const gpa = std.testing.allocator;
 const io = std.testing.io;
@@ -431,6 +432,16 @@ test "eq? and any-of? compare UTF-16 text with UTF-8 literals, astral code point
     try std.testing.expectEqual(1, try countMatches(g, text, .utf16le, "((string) @s (#any-of? @s \"x\" \"\\\"k\\\"\"))"));
 }
 
+test "a field before a predicate is a syntax error at the field (libs/tree-sitter.patch)" {
+    const g = try need("json");
+    // Found by the query-source fuzz target: upstream wrote the field one
+    // past its steps (UPSTREAM.md).
+    const source = "(pair key: (#set! x))";
+    var diagnostic: ts.QueryDiagnostic = .{};
+    try std.testing.expectError(error.Syntax, ts.Query.initDiagnostic(gpa, g.language(), source, .{ .dialect = .tree_sitter }, &diagnostic));
+    try std.testing.expectEqual(std.mem.find(u8, source, "key").?, diagnostic.offset);
+}
+
 test "tags: references in Rust" {
     const g = try need("rust");
     const text = g.queries.tags orelse return error.SkipZigTest;
@@ -509,4 +520,155 @@ test "the allocator seam balances: a parse, an edit and a query" {
     try std.testing.expectEqual(@as(usize, 3), n);
     const s = try sexp(tree.rootNode());
     gpa.free(s);
+}
+
+// ---------------------------------------------------------------------------
+// Fuzz targets, as shakedown properties, on the json grammar
+// ---------------------------------------------------------------------------
+
+/// `n` at most `max` bytes, each from `alphabet`.
+fn drawn(case: *shakedown.Case, alphabet: []const u8, max: usize) ![]u8 {
+    const s = case.source;
+    const out = try case.gpa.alloc(u8, shakedown.gen.intRange(s, usize, 0, max));
+    for (out) |*b| b.* = alphabet[shakedown.gen.intRange(s, usize, 0, alphabet.len - 1)];
+    return out;
+}
+
+/// A reader over `text` in pieces whose lengths the case draws. Pieces end
+/// on code-unit boundaries, as `Input.Reader` requires; `text` holds no
+/// surrogate pairs or multi-byte UTF-8 to split.
+const Drawn = struct {
+    reader: ts.Input.Reader,
+    text: []const u8,
+    /// Where each piece ends, ascending, the last at `text.len`.
+    ends: []const usize,
+
+    fn init(case: *shakedown.Case, text: []const u8, encoding: ts.Encoding) !Drawn {
+        const unit: usize = if (encoding == .utf8) 1 else 2;
+        var ends: std.ArrayList(usize) = .empty;
+        var at: usize = 0;
+        while (at < text.len) {
+            at += unit * shakedown.gen.intRange(case.source, usize, 1, @min((text.len - at) / unit, 8));
+            try ends.append(case.gpa, at);
+        }
+        return .{ .reader = .{ .read = read, .encoding = encoding }, .text = text, .ends = ends.items };
+    }
+
+    fn read(reader: *const ts.Input.Reader, byte: u32, _: ts.Point) []const u8 {
+        const self: *const Drawn = @fieldParentPtr("reader", reader);
+        // The first piece ending after `byte`.
+        const i = std.sort.upperBound(usize, self.ends, @as(usize, byte), order);
+        if (i == self.ends.len) return "";
+        return self.text[byte..self.ends[i]];
+    }
+
+    fn order(byte: usize, end: usize) std.math.Order {
+        return std.math.order(byte, end);
+    }
+};
+
+/// Any bytes parse without fault, and read in any pieces they parse to the
+/// same tree.
+fn parsesAnyBytes(g: *const ts.Grammar, case: *shakedown.Case) !void {
+    const text = try drawn(case, "{}[]\":,0123456789.eE+-truefalsn \n\\\x00\xff", 200);
+    case.note("\"{s}\"", .{text});
+    var parser: ts.Parser = .init();
+    defer parser.deinit();
+    try parser.setLanguage(g.language());
+    var whole = try parser.parseSlice(text, null);
+    defer whole.deinit();
+    try std.testing.expect(whole.rootNode().endByte() <= text.len);
+    const pieces: Drawn = try .init(case, text, .utf8);
+    var read = try parser.parse(case.io(), .{ .reader = &pieces.reader }, null, .{});
+    defer read.deinit();
+    const a = try sexp(whole.rootNode());
+    defer gpa.free(a);
+    const b = try sexp(read.rootNode());
+    defer gpa.free(b);
+    try std.testing.expectEqualStrings(a, b);
+}
+
+test "fuzz: parseSlice takes any bytes, and a reader in any pieces parses the same tree" {
+    const g = try need("json");
+    try shakedown.check(gpa, g, parsesAnyBytes, .{ .cases = 1000, .seed = 0x750 });
+}
+
+/// Any query source compiles or is refused, in either dialect.
+fn compilesOrRefuses(g: *const ts.Grammar, case: *shakedown.Case) !void {
+    const pieces = [_][]const u8{
+        "(",       ")",                 "[",       "]",        "@a",          "@b",         " ",
+        "(pair",   "(string",           "(object", "(number",  "key:",        "value:",     "_",
+        "#eq?",    "#not-eq?",          "#match?", "#any-of?", "#lua-match?", "#contains?", "#set!",
+        "#strip!", "#select-adjacent!", "#is?",    "\"x\"",    "\"^%a+\"",    "\"(?i)a\"",  "\"[\"",
+        "*",       "+",                 "?",       "!",        ".",           "\"",         "#any-eq?",
+    };
+    var text: std.ArrayList(u8) = .empty;
+    for (0..shakedown.gen.intRange(case.source, usize, 0, 24)) |_| {
+        try text.appendSlice(case.gpa, pieces[shakedown.gen.intRange(case.source, usize, 0, pieces.len - 1)]);
+    }
+    const dialect: ts.Dialect = if (shakedown.gen.boolean(case.source)) .neovim else .tree_sitter;
+    case.note("{t}: {s}", .{ dialect, text.items });
+    var query = ts.Query.init(gpa, g.language(), text.items, .{ .dialect = dialect }) catch return;
+    query.deinit();
+}
+
+test "fuzz: a query source compiles or is refused" {
+    const g = try need("json");
+    try shakedown.check(gpa, g, compilesOrRefuses, .{ .cases = 3000, .seed = 0x9e7 });
+}
+
+/// `eq?` between a pair's key and value holds exactly for the pairs whose
+/// texts are equal, read whole from a slice, from a reader in any pieces,
+/// and from UTF-16.
+fn eqMatchesText(g: *const ts.Grammar, case: *shakedown.Case) !void {
+    const s = case.source;
+    var text: std.ArrayList(u8) = .empty;
+    var equal: usize = 0;
+    try text.append(case.gpa, '{');
+    const pairs = shakedown.gen.intRange(s, usize, 0, 6);
+    for (0..pairs) |i| {
+        // Strings around the 16 KiB predicate scratch, alike for a long run.
+        const len = if (shakedown.gen.boolean(s)) shakedown.gen.intRange(s, usize, 0, 8) else shakedown.gen.intRange(s, usize, 16 * 1024 - 8, 16 * 1024 + 8);
+        const key = try case.gpa.alloc(u8, len);
+        @memset(key, 'k');
+        const value = try case.gpa.dupe(u8, key);
+        if (len != 0 and shakedown.gen.boolean(s)) value[shakedown.gen.intRange(s, usize, 0, len - 1)] = 'v';
+        if (std.mem.eql(u8, key, value)) equal += 1;
+        if (i != 0) try text.append(case.gpa, ',');
+        try text.print(case.gpa, "\"{s}\":\"{s}\"", .{ key, value });
+    }
+    try text.append(case.gpa, '}');
+    case.note("{d} pairs, {d} equal", .{ pairs, equal });
+
+    const source = "((pair key: (string) @k value: (string) @v) (#eq? @k @v))";
+    var units = try case.gpa.alloc(u16, text.items.len);
+    const n = try std.unicode.utf8ToUtf16Le(units, text.items);
+    // utf8ToUtf16Le stores each unit little-endian: these bytes are UTF-16LE.
+    const utf16 = std.mem.sliceAsBytes(units[0..n]);
+    for ([_]struct { []const u8, ts.Encoding, bool }{
+        .{ text.items, .utf8, false },
+        .{ text.items, .utf8, true },
+        .{ utf16, .utf16le, true },
+    }) |form| {
+        var parser: ts.Parser = .init();
+        defer parser.deinit();
+        try parser.setLanguage(g.language());
+        const pieces: Drawn = try .init(case, form[0], form[1]);
+        const input: ts.Input = if (form[2]) .{ .reader = &pieces.reader } else .{ .slice = form[0] };
+        var tree = try parser.parse(case.io(), input, null, .{});
+        defer tree.deinit();
+        var query = try ts.Query.init(gpa, g.language(), source, .{ .dialect = .tree_sitter });
+        defer query.deinit();
+        var cursor = try ts.QueryCursor.init(gpa);
+        defer cursor.deinit();
+        var count: usize = 0;
+        var matches = cursor.matches(case.io(), &query, tree.rootNode(), input, .{});
+        while (try matches.next()) |_| count += 1;
+        try std.testing.expectEqual(equal, count);
+    }
+}
+
+test "fuzz: eq? holds exactly for equal texts, from a slice, a reader in pieces and UTF-16" {
+    const g = try need("json");
+    try shakedown.check(gpa, g, eqMatchesText, .{ .cases = 200, .seed = 0xe9 });
 }

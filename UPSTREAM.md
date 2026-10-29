@@ -2,7 +2,8 @@
 
 ## The runtime
 
-`libs/tree-sitter` is a copy of the tree-sitter runtime, unmodified.
+`libs/tree-sitter` is a copy of the tree-sitter runtime with one fix,
+`libs/tree-sitter.patch` (below).
 
 | | |
 |---|---|
@@ -17,11 +18,28 @@ out: the CLI, the bindings, the WebAssembly runtime's prebuilt pieces, the
 tests and every build system; `build.zig` compiles `lib/src/lib.c`, the one
 translation unit upstream's own builds use, with the same macros.
 `zig build check-vendor` checks the tag still names the commit, downloads
-that commit and compares the three paths with no exclusions.
+that commit, applies `libs/tree-sitter.patch` to it with `git apply` and
+compares the three paths with no exclusions.
 
 Not compiled: WebAssembly grammar support (`TREE_SITTER_FEATURE_WASM`), which
 needs wasmtime. The five entry points that exist only with it are excluded by
 name in `src/abi_check.zig`.
+
+Patched: `libs/tree-sitter.patch`, against `v0.27.0`
+(`6070dbfefd326bd735e5683eb128cc1b57dad0c0`), one change:
+
+- **A field before a predicate wrote past the query's steps.** In
+  `lib/src/query.c`, `ts_query__parse_pattern` parses a field's pattern and
+  then names the field on that pattern's first step, at the index the steps
+  had before it. A predicate adds no step, so for `(pair key: (#set! x))`
+  that index is the array's size: a debug build stops on `array_get`'s
+  assertion (`query.c:2883`), and a release build writes the field id one
+  step past the array. The patch refuses the pattern with
+  `TSQueryErrorSyntax` at the field name, as the function's other syntax
+  errors do. Unfixed upstream at `v0.27.1` and at `master`
+  (`ad067fddf76a32c3071f8f3a31e8719d348e2737`), and not yet reported. Found
+  on 2026-10-29 by the query-source fuzz target in `tests/tests.zig`;
+  "a field before a predicate is a syntax error at the field" tests it.
 
 Known upstream behaviour, recorded rather than patched: `lib/src/query.c`
 (`symbol_table_insert_name`, line 957) copies a query's empty string literal
@@ -32,7 +50,9 @@ so the undefined-behaviour sanitizer stops on it on Linux. With
 (`-fno-sanitize=nonnull-attribute`). Found by CI on 2026-10-03 compiling
 nvim-treesitter's `(#set! conceal "")`.
 
-To re-vendor: replace the three paths from the new tag, update this table,
+To re-vendor: replace the three paths from the new tag, apply
+`libs/tree-sitter.patch` (dropping any change the new tag already makes, and
+regenerating it with `git diff` against the tag), update this table,
 the constants at the top of `tools/upstream.zig`, `runtime_version` in
 `src/ztreesitter.zig` and in `tools/catalogue.zig`, then run
 the suite. The ABI guard fails the build if the header changed under

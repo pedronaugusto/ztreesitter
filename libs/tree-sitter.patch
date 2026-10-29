@@ -1,0 +1,21 @@
+ztreesitter's changes to tree-sitter v0.27.0 (6070dbfefd326bd735e5683eb128cc1b57dad0c0).
+Each is described in UPSTREAM.md; zig build check-vendor applies this file to
+upstream's commit and compares the result with libs/tree-sitter.
+
+diff --git a/lib/src/query.c b/lib/src/query.c
+--- a/lib/src/query.c
++++ b/lib/src/query.c
+@@ -2868,6 +2868,13 @@ static TSQueryError ts_query__parse_pattern(
+       return e;
+     }
+ 
++    // A predicate adds no step, so a field before one has none to name.
++    if (self->steps.size == starting_step_index) {
++      capture_quantifiers_delete(&field_capture_quantifiers);
++      stream_reset(stream, field_name);
++      return TSQueryErrorSyntax;
++    }
++
+     // Add the field name to the first step of the pattern
+     TSFieldId field_id = ts_language_field_id_for_name(
+       self->language,

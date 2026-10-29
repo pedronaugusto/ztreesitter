@@ -56,10 +56,12 @@ pub const references: []const gantry.rules.ReferenceRule = &.{
         "std",
         "ztreesitter_options",
         "api_h",
+        "shakedown",
     } },
     .{ .name = "source siblings", .suffix = ".zig", .relative = true, .except_targets = &.{ "src/**", "grammars/**" } },
     .{ .name = "options owner", .target = "ztreesitter_options", .except_from = &.{"src/ztreesitter.zig"} },
     .{ .name = "the header, for the ABI guard alone", .target = "api_h", .except_from = &.{"src/abi_check.zig"} },
+    .{ .name = "shakedown, for tests alone", .target = "shakedown", .except_from = &.{ "src/fuzz_test.zig", "tests/**" } },
 };
 
 pub const required = blk: {
