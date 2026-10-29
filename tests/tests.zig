@@ -446,7 +446,7 @@ test "tags: references in Rust" {
     const g = try need("rust");
     const text = g.queries.tags orelse return error.SkipZigTest;
     const source = "fn area(w: i32, h: i32) -> i32 { w * h }\nfn main() { let _ = area(2, 3); }\n";
-    var tags = try ts.Tags.init(gpa, g.language(), text);
+    var tags = try ts.Tags.init(gpa, g.language(), text, .{ .locals = g.queries.locals });
     defer tags.deinit();
     var parser: ts.Parser = .init();
     defer parser.deinit();
@@ -456,7 +456,9 @@ test "tags: references in Rust" {
     defer cursor.deinit();
     var out: std.ArrayList(ts.Tag) = .empty;
     defer out.deinit(gpa);
-    try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = source }, &out);
+    var docs: std.ArrayList(ts.Range) = .empty;
+    defer docs.deinit(gpa);
+    try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = source }, &out, &docs);
     var calls: usize = 0;
     for (out.items) |t| {
         if (t.role != .reference) continue;
@@ -465,6 +467,83 @@ test "tags: references in Rust" {
         calls += 1;
     }
     try std.testing.expectEqual(1, calls);
+}
+
+/// The tags of `source` under `tags`, with their docs.
+fn collectTags(g: *const ts.Grammar, tags: *const ts.Tags, source: []const u8, out: *std.ArrayList(ts.Tag), docs: *std.ArrayList(ts.Range)) !void {
+    var parser: ts.Parser = .init();
+    defer parser.deinit();
+    var tree = try parse(&parser, g, source);
+    defer tree.deinit();
+    var cursor = try ts.QueryCursor.init(gpa);
+    defer cursor.deinit();
+    try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = source }, out, docs);
+}
+
+test "tags: JavaScript docs selected by select-adjacent! and cleaned by strip!" {
+    const g = try need("javascript");
+    const text = g.queries.tags orelse return error.SkipZigTest;
+    var tags = try ts.Tags.init(gpa, g.language(), text, .{});
+    defer tags.deinit();
+    const source = "// unrelated\n\n/** Adds. */\n// Twice.\nfunction add() {}\n";
+    var out: std.ArrayList(ts.Tag) = .empty;
+    defer out.deinit(gpa);
+    var docs: std.ArrayList(ts.Range) = .empty;
+    defer docs.deinit(gpa);
+    try collectTags(g, &tags, source, &out, &docs);
+    const add = for (out.items) |t| {
+        if (t.role == .definition and std.mem.eql(u8, source[t.name.start_byte..t.name.end_byte], "add")) break t;
+    } else return error.TestUnexpectedResult;
+    // The comment above the blank line is not adjacent.
+    try std.testing.expectEqual(2, add.docs.len);
+    var buffer: [128]u8 = undefined;
+    var w: std.Io.Writer = .fixed(&buffer);
+    try tags.docText(gpa, add, docs.items, .{ .slice = source }, &w);
+    // tags.rs's strip! for JavaScript leaves a block comment's closing `*/`.
+    try std.testing.expectEqualStrings("Adds. */\nTwice.", w.buffered());
+}
+
+test "tags: (#is-not? local) drops names a locals query defines in scope, as far as scopes inherit" {
+    const g = try need("python");
+    const tags_query: ts.QueryText = .{ .dialect = .tree_sitter, .text =
+    \\((call function: (identifier) @name) @reference.call
+    \\  (#is-not? local))
+    };
+    const source =
+        \\def f(g):
+        \\    g()
+        \\    h()
+        \\    def inner():
+        \\        g()
+        \\g()
+        \\
+    ;
+    // Called names left: with inheriting scopes, `inner` sees `f`'s `g`;
+    // without, it does not.
+    const cases = [_]struct { []const u8, []const []const u8 }{
+        .{
+            \\(function_definition) @local.scope
+            \\(parameters (identifier) @local.definition)
+            , &.{ "h", "g" },
+        },
+        .{
+            \\((function_definition) @local.scope
+            \\  (#set! local.scope-inherits false))
+            \\(parameters (identifier) @local.definition)
+            , &.{ "h", "g", "g" },
+        },
+    };
+    for (cases) |case| {
+        var tags = try ts.Tags.init(gpa, g.language(), tags_query, .{ .locals = .{ .dialect = .tree_sitter, .text = case[0] } });
+        defer tags.deinit();
+        var out: std.ArrayList(ts.Tag) = .empty;
+        defer out.deinit(gpa);
+        var docs: std.ArrayList(ts.Range) = .empty;
+        defer docs.deinit(gpa);
+        try collectTags(g, &tags, source, &out, &docs);
+        try std.testing.expectEqual(case[1].len, out.items.len);
+        for (out.items, case[1]) |t, name| try std.testing.expectEqualStrings(name, source[t.name.start_byte..t.name.end_byte]);
+    }
 }
 
 test "tags: definitions in C, Swift and C#" {
@@ -478,7 +557,7 @@ test "tags: definitions in C, Swift and C#" {
         const g = grammar(case[0]) orelse continue;
         const text = g.queries.tags orelse continue;
         any = true;
-        var tags = try ts.Tags.init(gpa, g.language(), text);
+        var tags = try ts.Tags.init(gpa, g.language(), text, .{ .locals = g.queries.locals });
         defer tags.deinit();
         var parser: ts.Parser = .init();
         defer parser.deinit();
@@ -488,7 +567,9 @@ test "tags: definitions in C, Swift and C#" {
         defer cursor.deinit();
         var out: std.ArrayList(ts.Tag) = .empty;
         defer out.deinit(gpa);
-        try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = case[1] }, &out);
+        var docs: std.ArrayList(ts.Range) = .empty;
+        defer docs.deinit(gpa);
+        try tags.collect(gpa, io, &cursor, tree.rootNode(), .{ .slice = case[1] }, &out, &docs);
         var found = false;
         for (out.items) |t| {
             const name = case[1][t.name.start_byte..t.name.end_byte];

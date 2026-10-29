@@ -51,6 +51,7 @@ pub const CaptureEvent = query.CaptureEvent;
 pub const IterateError = query.IterateError;
 pub const Tags = tags.Tags;
 pub const Tag = tags.Tag;
+pub const TagsOptions = tags.InitOptions;
 pub const Layers = layers.Layers;
 pub const Layer = layers.Layer;
 pub const LayersOptions = layers.Options;

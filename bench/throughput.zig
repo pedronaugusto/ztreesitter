@@ -25,6 +25,7 @@ const Work = struct {
     tags: ?ts.Tags,
     cursor: ts.QueryCursor,
     out: std.ArrayList(ts.Tag) = .empty,
+    docs: std.ArrayList(ts.Range) = .empty,
 
     fn parse(w: *Work, units: u64) Error!void {
         for (0..units) |_| {
@@ -36,9 +37,10 @@ const Work = struct {
     fn tagged(w: *Work, units: u64) Error!void {
         for (0..units) |_| {
             w.out.clearRetainingCapacity();
+            w.docs.clearRetainingCapacity();
             var tree = try w.parser.parse(w.io, .{ .slice = w.text }, null, .{});
             defer tree.deinit();
-            try w.tags.?.collect(w.gpa, w.io, &w.cursor, tree.rootNode(), .{ .slice = w.text }, &w.out);
+            try w.tags.?.collect(w.gpa, w.io, &w.cursor, tree.rootNode(), .{ .slice = w.text }, &w.out, &w.docs);
         }
     }
 };
@@ -62,12 +64,13 @@ pub fn main(init: std.process.Init) !void {
         var work: Work = .{ .gpa = gpa, .io = io, .text = text, .parser = .init(), .tags = null, .cursor = try .init(gpa) };
         defer {
             work.out.deinit(gpa);
+            work.docs.deinit(gpa);
             work.cursor.deinit();
             if (work.tags) |*t| t.deinit();
             work.parser.deinit();
         }
         try work.parser.setLanguage(g.language());
-        if (g.queries.tags) |q| work.tags = try ts.Tags.init(gpa, g.language(), q);
+        if (g.queries.tags) |q| work.tags = try ts.Tags.init(gpa, g.language(), q, .{ .locals = g.queries.locals });
 
         var rows: std.ArrayList(shakedown.bench.Row(Work, Error)) = .empty;
         try rows.append(arena, .{ .name = try arena.print("parse/{s}", .{g.name}), .unit = "pass", .run = Work.parse });

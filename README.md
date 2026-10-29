@@ -118,7 +118,7 @@ describe definitions only.
 | `TreeCursor` | the cheapest walk of a tree |
 | `Query` | compiled once with its predicates, shared across threads |
 | `QueryCursor` | one thread; `matches` and `captures`, filtered by predicates |
-| `Tags` | definitions and references from a tags query |
+| `Tags` | definitions and references from a tags query, with docs (`select-adjacent!`, `strip!`) and a locals query for `(#is-not? local)` |
 | `Layers` | a document's trees: the root and one per injection; `update`, `edit`, `snapshot` |
 | `Language` | ABI version, symbols, fields; `load` for a shared-library grammar |
 | `c` | every function and type of `api.h` this build compiles |
@@ -188,8 +188,6 @@ language serves every layer of it, nesting stops at `max_depth` (8), and a
 - No parser generation at build time; generated parsers are committed by the
   catalogue tool.
 - No highlighting or themes.
-- Tags do not yet apply `strip!` and `select-adjacent!` to documentation, nor
-  use a locals query to drop references to local definitions.
 - `lua-match?` and `contains?` read a node's text from a reader input
   through a 16 KB buffer, so on a longer node they see its first 16 KB.
   `eq?` and `any-of?` compare whole texts, however long.
@@ -214,8 +212,9 @@ fresh parses over 200 random edits, included ranges for HTML and nested
 Markdown injections, `Layers` over HTML (scripts by type, styles) and
 Markdown (front matter, inline text, nested fences, combined HTML blocks)
 through edits, a wanted range, UTF-16, a deadline and a snapshot, predicates in Neovim's dialect, `eq?` and `any-of?` on
-long and UTF-16 reader text, tag definitions in C, Swift and C# and
-references in Rust, a deadline that pauses and resumes a parse, a canceled
+long and UTF-16 reader text, tag definitions in C, Swift and C#,
+references in Rust, JavaScript docs through `select-adjacent!` and `strip!`,
+locals scopes with and without `local.scope-inherits`, a deadline that pauses and resumes a parse, a canceled
 parse, and the allocator seam's balance.
 
 Fuzz targets, as shakedown properties: any bytes parse, and parse to the same

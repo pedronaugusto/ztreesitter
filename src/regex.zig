@@ -585,6 +585,43 @@ fn fold(cp: u21) u21 {
     return if (cp < 128) std.ascii.toLower(@intCast(cp)) else cp;
 }
 
+fn holds(a: Assertion, prev: u21, cur: u21) bool {
+    return switch (a) {
+        .text_start => prev == eof,
+        .text_end => cur == eof,
+        .line_start => prev == eof or prev == '\n',
+        .line_end => cur == eof or cur == '\n',
+        .word_boundary => isWord(prev) != isWord(cur),
+        .not_word_boundary => isWord(prev) == isWord(cur),
+        .word_start => !isWord(prev) and isWord(cur),
+        .word_end => isWord(prev) and !isWord(cur),
+    };
+}
+
+/// `inst` consumes `cp`.
+fn acceptsIn(program: *const Program, inst: Inst, cp: u21) bool {
+    if (cp == eof) return false;
+    const ic = program.ignore_case;
+    return switch (inst) {
+        .char => |ch| ch == cp or (ic and fold(ch) == fold(cp)),
+        .any => cp != '\n',
+        .class => |k| blk: {
+            const cls = program.classes[k];
+            var hit = false;
+            for (cls.ranges) |r| {
+                if (cp >= r[0] and cp <= r[1]) hit = true;
+                if (ic and !hit) {
+                    const f = fold(cp);
+                    const up: u21 = if (cp < 128) std.ascii.toUpper(@intCast(cp)) else cp;
+                    if ((f >= r[0] and f <= r[1]) or (up >= r[0] and up <= r[1])) hit = true;
+                }
+            }
+            break :blk hit != cls.negated;
+        },
+        else => false,
+    };
+}
+
 /// One search, fed in chunks. About 40 KB; keep one per cursor and reuse it.
 pub const Matcher = struct {
     program: *const Program,
@@ -609,20 +646,6 @@ pub const Matcher = struct {
         m.carry_len = 0;
     }
 
-    fn holds(m: *const Matcher, a: Assertion, prev: u21, cur: u21) bool {
-        _ = m;
-        return switch (a) {
-            .text_start => prev == eof,
-            .text_end => cur == eof,
-            .line_start => prev == eof or prev == '\n',
-            .line_end => cur == eof or cur == '\n',
-            .word_boundary => isWord(prev) != isWord(cur),
-            .not_word_boundary => isWord(prev) == isWord(cur),
-            .word_start => !isWord(prev) and isWord(cur),
-            .word_end => isWord(prev) and !isWord(cur),
-        };
-    }
-
     /// Add `pc` and everything reachable from it without consuming input.
     fn add(m: *Matcher, list: *Set, pc0: u16, prev: u21, cur: u21) void {
         var top: usize = 0;
@@ -643,7 +666,7 @@ pub const Matcher = struct {
                     m.stack[top + 1] = to[0];
                     top += 2;
                 },
-                .assert => |a| if (m.holds(a, prev, cur)) {
+                .assert => |a| if (holds(a, prev, cur)) {
                     m.stack[top] = pc + 1;
                     top += 1;
                 },
@@ -654,26 +677,7 @@ pub const Matcher = struct {
     }
 
     fn accepts(m: *const Matcher, inst: Inst, cp: u21) bool {
-        if (cp == eof) return false;
-        const ic = m.program.ignore_case;
-        return switch (inst) {
-            .char => |ch| ch == cp or (ic and fold(ch) == fold(cp)),
-            .any => cp != '\n',
-            .class => |k| blk: {
-                const cls = m.program.classes[k];
-                var hit = false;
-                for (cls.ranges) |r| {
-                    if (cp >= r[0] and cp <= r[1]) hit = true;
-                    if (ic and !hit) {
-                        const f = fold(cp);
-                        const up: u21 = if (cp < 128) std.ascii.toUpper(@intCast(cp)) else cp;
-                        if ((f >= r[0] and f <= r[1]) or (up >= r[0] and up <= r[1])) hit = true;
-                    }
-                }
-                break :blk hit != cls.negated;
-            },
-            else => false,
-        };
+        return acceptsIn(m.program, inst, cp);
     }
 
     /// Advance over `cp` (the code point at the current position), knowing
@@ -739,6 +743,149 @@ pub const Matcher = struct {
         return m.matched;
     }
 };
+
+/// Match spans over a whole slice, leftmost-first as the `regex` crate's
+/// `find`: the match starting earliest, and of those the one the pattern's
+/// order prefers. About 80 KB: allocate one and reuse it.
+pub const Finder = struct {
+    lists: [2]Threads,
+    stack: [max_instructions]u16,
+
+    pub const Span = struct { start: usize, end: usize };
+
+    /// Threads by priority, each with where its match started.
+    const Threads = struct {
+        set: Set,
+        starts: [max_instructions]usize,
+
+        fn clear(t: *Threads) void {
+            t.set.clear();
+        }
+    };
+
+    /// The first match starting at or after `from`.
+    pub fn find(f: *Finder, program: *const Program, text: []const u8, from: usize) ?Span {
+        f.lists[0].clear();
+        f.lists[1].clear();
+        var current: u1 = 0;
+        var found: ?Span = null;
+        var prev = codePointBefore(text, from);
+        var at = from;
+        // One round per code point, the end of the text included.
+        for (0..text.len - from + 1) |_| {
+            const here = codePointAt(text, at);
+            const clist = &f.lists[current];
+            // Until a match is found, one may start here, after every
+            // thread already running.
+            if (found == null) f.add(program, clist, 0, at, prev, here.cp);
+            const nlist = &f.lists[current +% 1];
+            nlist.clear();
+            const next = codePointAt(text, at + here.len).cp;
+            var i: u16 = 0;
+            while (i < clist.set.len) : (i += 1) {
+                const pc = clist.set.dense[i];
+                const inst = program.insts[pc];
+                if (inst == .match) {
+                    // Threads after it have lower priority.
+                    found = .{ .start = clist.starts[pc], .end = at };
+                    break;
+                }
+                if (acceptsIn(program, inst, here.cp)) f.add(program, nlist, pc + 1, clist.starts[pc], here.cp, next);
+            }
+            if (here.cp == eof or (found != null and nlist.set.len == 0)) break;
+            current +%= 1;
+            prev = here.cp;
+            at += here.len;
+        }
+        return found;
+    }
+
+    /// Add `pc` and everything reachable from it without consuming input,
+    /// as a thread that started at `start`.
+    fn add(f: *Finder, program: *const Program, list: *Threads, pc0: u16, start: usize, prev: u21, cur: u21) void {
+        var top: usize = 0;
+        f.stack[top] = pc0;
+        top += 1;
+        while (top > 0) {
+            top -= 1;
+            const pc = f.stack[top];
+            if (list.set.contains(pc)) continue;
+            list.set.insert(pc);
+            list.starts[pc] = start;
+            switch (program.insts[pc]) {
+                .jump => |to| {
+                    f.stack[top] = to;
+                    top += 1;
+                },
+                .split => |to| {
+                    f.stack[top] = to[1];
+                    f.stack[top + 1] = to[0];
+                    top += 2;
+                },
+                .assert => |a| if (holds(a, prev, cur)) {
+                    f.stack[top] = pc + 1;
+                    top += 1;
+                },
+                else => {},
+            }
+        }
+    }
+
+    /// `text` with every match replaced by `with`, as the `regex` crate's
+    /// `replace_all`: an empty match right after another is skipped.
+    pub fn replaceAll(f: *Finder, program: *const Program, text: []const u8, with: []const u8, w: *std.Io.Writer) std.Io.Writer.Error!void {
+        var at: usize = 0;
+        var last_end: ?usize = null;
+        // Each round moves `at` forward, or ends.
+        for (0..text.len + 1) |_| {
+            const m = f.find(program, text, at) orelse break;
+            if (m.start == m.end and last_end == m.start) {
+                if (m.start == text.len) break;
+                const n = codePointAt(text, m.start).len;
+                try w.writeAll(text[at .. m.start + n]);
+                at = m.start + n;
+                continue;
+            }
+            try w.writeAll(text[at..m.start]);
+            try w.writeAll(with);
+            last_end = m.end;
+            at = m.end;
+            if (m.start == m.end) {
+                if (m.end == text.len) break;
+                const n = codePointAt(text, m.end).len;
+                try w.writeAll(text[m.end..][0..n]);
+                at = m.end + n;
+            }
+        }
+        try w.writeAll(text[at..]);
+    }
+};
+
+/// The code point at `i` and its length in bytes; `eof` at the end. A byte
+/// that starts no UTF-8 sequence is a code point of its own, as `Matcher`
+/// reads it.
+fn codePointAt(text: []const u8, i: usize) struct { cp: u21, len: usize } {
+    if (i >= text.len) return .{ .cp = eof, .len = 0 };
+    const b = text[i];
+    if (b < 0x80) return .{ .cp = b, .len = 1 };
+    const want = std.unicode.utf8ByteSequenceLength(b) catch return .{ .cp = b, .len = 1 };
+    if (text.len - i < want) return .{ .cp = b, .len = 1 };
+    const cp = decodeUtf8(text[i..][0..want]) catch return .{ .cp = b, .len = 1 };
+    return .{ .cp = cp, .len = want };
+}
+
+/// The code point ending at `i`; `eof` at the start.
+fn codePointBefore(text: []const u8, i: usize) u21 {
+    if (i == 0) return eof;
+    var start = i - 1;
+    // Back over at most three continuation bytes.
+    for (0..3) |_| {
+        if (start == 0 or text[start] & 0xc0 != 0x80) break;
+        start -= 1;
+    }
+    const at = codePointAt(text, start);
+    return if (start + at.len == i) at.cp else text[i - 1];
+}
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -841,5 +988,42 @@ test "patterns outside the supported set are refused" {
         .{ .rust, "(?i)a(?-i)b" },
     }) |case| {
         try std.testing.expectError(error.InvalidPattern, compile(gpa, case[1], case[0]));
+    }
+}
+
+test "find gives leftmost-first spans, and replaceAll replaces as the regex crate" {
+    const gpa = std.testing.allocator;
+    const f = try gpa.create(Finder);
+    defer gpa.destroy(f);
+    const cases = [_]struct { []const u8, []const u8, ?Finder.Span }{
+        .{ "b+", "abbbc", .{ .start = 1, .end = 4 } },
+        // Leftmost-first: the first alternative that matches, not the longest.
+        .{ "a|ab", "ab", .{ .start = 0, .end = 1 } },
+        .{ "ab|a", "ab", .{ .start = 0, .end = 2 } },
+        .{ "^//\\s*", "//  doc", .{ .start = 0, .end = 4 } },
+        .{ "x", "abc", null },
+        .{ "c$", "abc", .{ .start = 2, .end = 3 } },
+        .{ "é+", "a éé", .{ .start = 2, .end = 6 } },
+    };
+    for (cases) |c| {
+        var p = try compile(gpa, c[0], .rust);
+        defer p.deinit(gpa);
+        try std.testing.expectEqual(c[2], f.find(&p, c[1], 0));
+    }
+    const replaced = [_]struct { []const u8, []const u8, []const u8, []const u8 }{
+        .{ "x*", "ab", "-", "-a-b-" },
+        .{ "o", "hello world", "0", "hell0 w0rld" },
+        // tags queries' strip! patterns.
+        .{ "^[\\s\\*/]+|^[\\s\\*/]$", "/** Adds. */", "", "Adds. */" },
+        .{ "^#\\s*", "# A comment", "", "A comment" },
+        .{ "^\\(\\*+\\s*|\\s*\\*+\\)$", "(** OCaml doc *)", "", "OCaml doc" },
+    };
+    for (replaced) |c| {
+        var p = try compile(gpa, c[0], .rust);
+        defer p.deinit(gpa);
+        var buffer: [64]u8 = undefined;
+        var w: std.Io.Writer = .fixed(&buffer);
+        try f.replaceAll(&p, c[1], c[2], &w);
+        try std.testing.expectEqualStrings(c[3], w.buffered());
     }
 }
