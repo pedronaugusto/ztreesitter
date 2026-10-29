@@ -8,9 +8,9 @@
 | | |
 |---|---|
 | Source | <https://github.com/tree-sitter/tree-sitter> |
-| Version | 0.27.0 |
-| Tag | `v0.27.0` |
-| Commit | `6070dbfefd326bd735e5683eb128cc1b57dad0c0` |
+| Version | 0.27.1 |
+| Tag | `v0.27.1` |
+| Commit | `10eb5ac119eec9cb4267a8e035066473983f5f3a` |
 | Licence | MIT (`libs/tree-sitter/LICENSE`) |
 
 Taken: `lib/src`, `lib/include` and `LICENSE`, at their upstream paths. Left
@@ -25,10 +25,10 @@ Not compiled: WebAssembly grammar support (`TREE_SITTER_FEATURE_WASM`), which
 needs wasmtime. The five entry points that exist only with it are excluded by
 name in `src/abi_check.zig`.
 
-Patched: `libs/tree-sitter.patch`, against `v0.27.0`
-(`6070dbfefd326bd735e5683eb128cc1b57dad0c0`), one change:
+Patched: `libs/tree-sitter.patch`, against `v0.27.1`
+(`10eb5ac119eec9cb4267a8e035066473983f5f3a`), one change:
 
-- `lib/src/query.c`, `ts_query__parse_pattern`, line 2883 at `v0.27.0`:
+- `lib/src/query.c`, `ts_query__parse_pattern`, line 2886 at `v0.27.1`:
   for a field before a predicate, `(pair key: (#set! x))` on json, the
   field is set on `steps[steps.size]` (an assertion failure in a debug
   build, a write past the array in a release build). The patch returns
@@ -37,7 +37,7 @@ Patched: `libs/tree-sitter.patch`, against `v0.27.0`
   predicate is a syntax error at the field" in `tests/tests.zig`.
 
 Known upstream behaviour, recorded rather than patched: `lib/src/query.c`
-(`symbol_table_insert_name`, line 957) copies a query's empty string literal
+(`symbol_table_insert_name`, line 960) copies a query's empty string literal
 with `memcpy(dst, NULL, 0)`. That is undefined behaviour in C before C2y and
 harmless in practice; glibc's headers declare `memcpy`'s arguments non-null,
 so the undefined-behaviour sanitizer stops on it on Linux. With
@@ -60,7 +60,7 @@ grammar at the revision nvim-treesitter's queries are written against.
 `zig build catalogue` (`tools/catalogue.zig`) regenerates it:
 
 ```sh
-zig build catalogue -- --nvim-treesitter <commit> --helix <commit> --tree-sitter <tree-sitter 0.27.0 CLI>
+zig build catalogue -- --nvim-treesitter <commit> --helix <commit> --tree-sitter <tree-sitter 0.27.1 CLI>
 ```
 
 | | |

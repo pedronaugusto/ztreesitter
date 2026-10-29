@@ -18,8 +18,8 @@ const github = @import("github.zig");
 /// The vendored runtime. UPSTREAM.md names the same tag and commit; the
 /// re-vendor procedure there changes them together.
 const runtime_url = "https://github.com/tree-sitter/tree-sitter";
-const runtime_tag = "v0.27.0";
-const runtime_commit = "6070dbfefd326bd735e5683eb128cc1b57dad0c0";
+const runtime_tag = "v0.27.1";
+const runtime_commit = "10eb5ac119eec9cb4267a8e035066473983f5f3a";
 /// Paths copied, relative to upstream's root and to libs/tree-sitter.
 const vendored = [_][]const u8{ "LICENSE", "lib/include", "lib/src" };
 /// The changes to them, a unified diff against upstream's root that UPSTREAM.md

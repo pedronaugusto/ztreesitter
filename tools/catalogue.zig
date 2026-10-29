@@ -30,7 +30,7 @@ const Io = std.Io;
 const Allocator = std.mem.Allocator;
 const github = @import("github.zig");
 
-const runtime_version = "0.27.0";
+const runtime_version = "0.27.1";
 const repository = "https://github.com/pedronaugusto/ztreesitter";
 const nvim_url = "https://github.com/nvim-treesitter/nvim-treesitter";
 const helix_url = "https://github.com/helix-editor/helix";

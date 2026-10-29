@@ -1,11 +1,11 @@
-ztreesitter's changes to tree-sitter v0.27.0 (6070dbfefd326bd735e5683eb128cc1b57dad0c0).
+ztreesitter's changes to tree-sitter v0.27.1 (10eb5ac119eec9cb4267a8e035066473983f5f3a).
 Each is described in UPSTREAM.md; zig build check-vendor applies this file to
 upstream's commit and compares the result with libs/tree-sitter.
 
 diff --git a/lib/src/query.c b/lib/src/query.c
 --- a/lib/src/query.c
 +++ b/lib/src/query.c
-@@ -2868,6 +2868,13 @@ static TSQueryError ts_query__parse_pattern(
+@@ -2871,6 +2871,13 @@ static TSQueryError ts_query__parse_pattern(
        return e;
      }
  
