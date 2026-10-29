@@ -55,7 +55,7 @@ pub const Filter = struct {
         eq_capture: u32,
         any_of: []const []const u8,
         regex: regex.Program,
-        lua: []const u8,
+        lua: lua.Pattern,
         contains: []const []const u8,
         has_ancestor: []const []const u8,
         has_parent: []const []const u8,
@@ -252,8 +252,7 @@ fn filter(gpa: std.mem.Allocator, full: []const u8, args: []const Arg, dialect: 
         f.test_ = .{ .regex = try regex.compile(gpa, rest[0].string, if (dialect == .neovim) .vim else .rust) };
     } else if (dialect == .neovim and std.mem.eql(u8, name, "lua-match?")) {
         if (rest.len != 1 or rest[0] != .string) return error.InvalidPredicate;
-        lua.validate(rest[0].string) catch return error.InvalidPattern;
-        f.test_ = .{ .lua = rest[0].string };
+        f.test_ = .{ .lua = lua.Pattern.init(rest[0].string) catch return error.InvalidPattern };
     } else if (dialect == .neovim and std.mem.eql(u8, name, "contains?")) {
         f.test_ = .{ .contains = try strings(gpa, rest) };
     } else if (dialect == .neovim and std.mem.eql(u8, name, "has-ancestor?")) {
@@ -440,8 +439,12 @@ fn isLiteral(input: types.Input, n: Node, literal: []const u8, scratch: *Scratch
     return at == end;
 }
 
+/// Why evaluating a match's predicates stops without an answer: a Lua
+/// pattern's search was canceled or ran past its step budget.
+pub const EvalError = lua.FindError;
+
 /// Does one node satisfy the base test (before negation)?
-fn holds(f: *const Filter, n: Node, match: []const Capture, input: types.Input, scratch: *Scratch) bool {
+fn holds(io: std.Io, f: *const Filter, n: Node, match: []const Capture, input: types.Input, scratch: *Scratch) EvalError!bool {
     switch (f.test_) {
         .has_parent => |kinds| return if (n.parent()) |p| kindIn(p, kinds) else false,
         .has_ancestor => |kinds| return hasAncestor(n, kinds),
@@ -474,19 +477,20 @@ fn holds(f: *const Filter, n: Node, match: []const Capture, input: types.Input, 
             for (list) |s| if (isLiteral(input, n, s, scratch)) return true;
             return false;
         },
-        .lua => |pattern| return lua.find(text.bytes, pattern) catch false,
+        .lua => |pattern| return lua.find(io, text.bytes, pattern),
         .contains => |list| return substring(text.bytes, list, f.any),
         else => unreachable,
     }
 }
 
-/// Does the match satisfy every filter of its pattern?
-pub fn satisfies(filters: []const Filter, match: []const Capture, input: types.Input, dialect: Dialect, scratch: *Scratch) bool {
-    for (filters) |*f| if (!satisfiesOne(f, match, input, dialect, scratch)) return false;
+/// Does the match satisfy every filter of its pattern? A cancellation point
+/// on `io`, in Lua patterns' searches.
+pub fn satisfies(io: std.Io, filters: []const Filter, match: []const Capture, input: types.Input, dialect: Dialect, scratch: *Scratch) EvalError!bool {
+    for (filters) |*f| if (!try satisfiesOne(io, f, match, input, dialect, scratch)) return false;
     return true;
 }
 
-fn satisfiesOne(f: *const Filter, match: []const Capture, input: types.Input, dialect: Dialect, scratch: *Scratch) bool {
+fn satisfiesOne(io: std.Io, f: *const Filter, match: []const Capture, input: types.Input, dialect: Dialect, scratch: *Scratch) EvalError!bool {
     // `any-of?`, `has-ancestor?` and `has-parent?` hold when any node does,
     // in Neovim; `contains?` folds `any` into its strings.
     const any = f.any or (dialect == .neovim and switch (f.test_) {
@@ -501,7 +505,7 @@ fn satisfiesOne(f: *const Filter, match: []const Capture, input: types.Input, di
             for (match) |cap| {
                 if (cap.index != f.capture) continue;
                 seen = true;
-                const r = holds(f, cap.node, match, input, scratch);
+                const r = try holds(io, f, cap.node, match, input, scratch);
                 if (per_string) {
                     if (f.any and r) {
                         result = true;
@@ -529,7 +533,7 @@ fn satisfiesOne(f: *const Filter, match: []const Capture, input: types.Input, di
             // nodes.all(test == positive), or nodes.any(...) with `any-`.
             for (match) |cap| {
                 if (cap.index != f.capture) continue;
-                const r = holds(f, cap.node, match, input, scratch) != f.negate;
+                const r = (try holds(io, f, cap.node, match, input, scratch)) != f.negate;
                 if (any and r) return true;
                 if (!any and !r) return false;
             }

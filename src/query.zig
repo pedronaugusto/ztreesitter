@@ -301,20 +301,25 @@ pub const Cursor = struct {
     /// be the text the tree was parsed from. A cancellation point on `io`.
     pub fn matches(cur: *Cursor, io: std.Io, query: *const Query, start: Node, input: types.Input, options: IterateOptions) Matches {
         cur.exec(io, query, start, options);
-        return .{ .cursor = cur, .query = query, .input = input };
+        return .{ .io = io, .cursor = cur, .query = query, .input = input };
     }
 
     /// Iterate the captures of `query` under `start` in document order,
     /// filtered by its predicates.
     pub fn captures(cur: *Cursor, io: std.Io, query: *const Query, start: Node, input: types.Input, options: IterateOptions) Captures {
         cur.exec(io, query, start, options);
-        return .{ .cursor = cur, .query = query, .input = input };
+        return .{ .io = io, .cursor = cur, .query = query, .input = input };
     }
 };
 
-pub const IterateError = error{ Canceled, Paused };
+/// `Canceled` and `Paused` stop an iteration, which a later call resumes
+/// after `Paused`. `TooManySteps`: a `lua-match?` search ran past its step
+/// budget (`lua_pattern.step_budget`); its match is dropped undecided, and a
+/// later call goes on with the next.
+pub const IterateError = error{ Canceled, Paused } || predicates.EvalError;
 
 pub const Matches = struct {
+    io: std.Io,
     cursor: *Cursor,
     query: *const Query,
     input: types.Input,
@@ -323,7 +328,7 @@ pub const Matches = struct {
         var raw: c.QueryMatch = undefined;
         while (c.ts_query_cursor_next_match(it.cursor.raw, &raw)) {
             const m = Match.fromC(raw);
-            if (predicates.satisfies(it.query.patterns[m.pattern].filters, m.captures, it.input, it.query.dialect, it.cursor.scratch)) return m;
+            if (try predicates.satisfies(it.io, it.query.patterns[m.pattern].filters, m.captures, it.input, it.query.dialect, it.cursor.scratch)) return m;
         }
         if (it.cursor.progress.stopped) |err| return err;
         return null;
@@ -345,6 +350,7 @@ pub const CaptureEvent = struct {
 };
 
 pub const Captures = struct {
+    io: std.Io,
     cursor: *Cursor,
     query: *const Query,
     input: types.Input,
@@ -358,7 +364,12 @@ pub const Captures = struct {
         while (c.ts_query_cursor_next_capture(it.cursor.raw, &raw, &index)) {
             const m = Match.fromC(raw);
             if (it.passed != m.id) {
-                if (!predicates.satisfies(it.query.patterns[m.pattern].filters, m.captures, it.input, it.query.dialect, it.cursor.scratch)) {
+                const passes = predicates.satisfies(it.io, it.query.patterns[m.pattern].filters, m.captures, it.input, it.query.dialect, it.cursor.scratch) catch |err| {
+                    // Undecided: dropped, so a later call goes on with the next match.
+                    c.ts_query_cursor_remove_match(it.cursor.raw, m.id);
+                    return err;
+                };
+                if (!passes) {
                     c.ts_query_cursor_remove_match(it.cursor.raw, m.id);
                     continue;
                 }

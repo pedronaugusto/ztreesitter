@@ -143,8 +143,10 @@ languages and queries.
   `Query.init` takes one. Both regex syntaxes compile to one Pike VM, which
   reads text in chunks and runs in linear time; Lua patterns follow Lua 5.1's
   matcher.
-- **Matching allocates nothing.** A `QueryCursor` holds its working memory
-  (about 72 KB) from `init`. A query's predicates are compiled once, with the
+- **Matching allocates nothing, and is bounded.** A `QueryCursor` holds its
+  working memory (about 72 KB) from `init`. A Lua pattern backtracks, as in
+  Lua: its search is a cancellation point and stops with
+  `error.TooManySteps` past a step budget, dropping that match undecided. A query's predicates are compiled once, with the
   allocator given to `Query.init`, which the query keeps.
 - **Unknown predicates are refused.** `Query.init` fails with
   `UnsupportedPredicate`, naming the predicate and pattern in a
