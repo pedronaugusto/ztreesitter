@@ -56,14 +56,14 @@ test "every selected grammar loads, parses its sample and compiles its queries" 
             std.debug.print("{s}: no sample in tests/samples.zig\n", .{g.name});
             failures += 1;
         }
-        inline for (@typeInfo(ts.Grammar.Queries).@"struct".fields) |field| {
-            if (@field(g.queries, field.name)) |text| {
+        inline for (@typeInfo(ts.Grammar.Queries).@"struct".field_names) |field_name| {
+            if (@field(g.queries, field_name)) |text| {
                 var diagnostic: ts.QueryDiagnostic = .{};
                 if (ts.Query.initDiagnostic(gpa, lang, text.text, .{ .dialect = text.dialect }, &diagnostic)) |q| {
                     var query = q;
                     query.deinit();
                 } else |err| {
-                    std.debug.print("{s}: {s} query: {s} at byte {d} {s}\n", .{ g.name, field.name, @errorName(err), diagnostic.offset, diagnostic.predicate });
+                    std.debug.print("{s}: {s} query: {s} at byte {d} {s}\n", .{ g.name, field_name, @errorName(err), diagnostic.offset, diagnostic.predicate });
                     failures += 1;
                 }
             }
@@ -323,7 +323,7 @@ test "predicates filter matches: Neovim's dialect on the zig highlights" {
     defer query.deinit();
     var cursor = try ts.QueryCursor.init(gpa);
     defer cursor.deinit();
-    var counts = [_]usize{0} ** 4;
+    var counts: [4]usize = @splat(0);
     var captures = cursor.captures(io, &query, tree.rootNode(), .{ .slice = text }, .{});
     while (try captures.next()) |e| {
         // The grammar has zero-width identifiers in places; count words.

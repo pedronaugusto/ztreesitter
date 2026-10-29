@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  ZIG_VERSION: 0.16.0
+  ZIG_VERSION: 0.17.0
   # build.zig's representative set, the grammars `zig build test` compiles.
   GRAMMARS: bash c c_sharp cpp css html javascript json lua markdown markdown_inline python regex rust scss swift tsx typescript zig
 

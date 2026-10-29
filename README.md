@@ -1,6 +1,6 @@
 # ztreesitter
 
-[tree-sitter](https://tree-sitter.github.io/) for Zig 0.16: the runtime,
+[tree-sitter](https://tree-sitter.github.io/) for Zig 0.17: the runtime,
 vendored and built with `zig build`, a Zig API over it, query predicates in
 both the dialect tree-sitter's own bindings use and Neovim's, tags, and a
 catalogue of the 320 grammars nvim-treesitter pins, each compiled only when a
@@ -94,7 +94,7 @@ nvim-treesitter commit; [UPSTREAM.md](UPSTREAM.md) has the procedure.
 Each grammar is fetched from a mirror in this repository: the files its build
 and its queries read, at the grammar repository's own paths, published as an
 orphan commit. Grammar repositories that ship their own `build.zig` would
-otherwise have it compiled into the build (several do not compile on 0.16),
+otherwise have it compiled into the build (several do not compile on current Zig),
 some contain symlinks Windows cannot create, and four commit no `parser.c`;
 the mirror holds the parser this repository generates for those.
 

@@ -1,5 +1,5 @@
 //! The hand-written declarations in `c.zig` against the vendored `api.h`,
-//! `@cImport`ed here in the test build only, compared by reflection. A
+//! translated by the test build only (`api_h`), compared by reflection. A
 //! re-vendor that changes a signature, a struct layout or an enumerator fails
 //! to compile; the reverse sweep fails if the header declares a function this
 //! file neither binds nor excludes by name.
@@ -7,9 +7,7 @@
 const std = @import("std");
 const c = @import("c.zig");
 
-const h = @cImport({
-    @cInclude("tree_sitter/api.h");
-});
+const h = @import("api_h");
 
 /// Declared by the header, compiled only with WebAssembly support, which
 /// this build leaves out.
@@ -45,13 +43,13 @@ fn sameShape(comptime Z: type, comptime C: type, comptime where: []const u8) voi
     if (zi == .@"struct" and ci == .@"struct") {
         if (@sizeOf(Z) != @sizeOf(C)) fail(where ++ ": struct size " ++ @typeName(Z));
         if (@alignOf(Z) != @alignOf(C)) fail(where ++ ": struct alignment " ++ @typeName(Z));
-        const zf = zi.@"struct".fields;
-        const cf = ci.@"struct".fields;
-        if (zf.len != cf.len) fail(where ++ ": field count of " ++ @typeName(Z));
-        inline for (zf, cf) |a, b| {
-            if (!std.mem.eql(u8, a.name, b.name)) fail(where ++ ": field " ++ a.name ++ " vs " ++ b.name);
-            if (@offsetOf(Z, a.name) != @offsetOf(C, b.name)) fail(where ++ ": offset of " ++ a.name);
-            sameShape(a.type, b.type, where ++ "." ++ a.name);
+        const zs = zi.@"struct";
+        const cs = ci.@"struct";
+        if (zs.field_names.len != cs.field_names.len) fail(where ++ ": field count of " ++ @typeName(Z));
+        inline for (zs.field_names, cs.field_names, zs.field_types, cs.field_types) |a, b, at, bt| {
+            if (!std.mem.eql(u8, a, b)) fail(where ++ ": field " ++ a ++ " vs " ++ b);
+            if (@offsetOf(Z, a) != @offsetOf(C, b)) fail(where ++ ": offset of " ++ a);
+            sameShape(at, bt, where ++ "." ++ a);
         }
         return;
     }
@@ -63,18 +61,19 @@ fn checkFunction(comptime name: []const u8) void {
     const C = @TypeOf(@field(h, name));
     const zf = @typeInfo(Z).@"fn";
     const cf = @typeInfo(C).@"fn";
-    if (zf.params.len != cf.params.len) fail(name ++ ": parameter count");
-    inline for (zf.params, cf.params, 0..) |a, b, i| {
-        sameShape(a.type.?, b.type.?, name ++ " parameter " ++ std.fmt.comptimePrint("{d}", .{i}));
+    if (zf.param_types.len != cf.param_types.len) fail(name ++ ": parameter count");
+    inline for (zf.param_types, cf.param_types, 0..) |a, b, i| {
+        sameShape(a.?, b.?, name ++ " parameter " ++ std.fmt.comptimePrint("{d}", .{i}));
     }
     sameShape(zf.return_type.?, cf.return_type.?, name ++ " result");
 }
 
 fn checkEnum(comptime E: type, comptime prefix: []const u8) void {
-    inline for (@typeInfo(E).@"enum".fields) |f| {
-        const cname = prefix ++ f.name;
+    const e = @typeInfo(E).@"enum";
+    inline for (e.field_names, e.field_values) |field_name, value| {
+        const cname = prefix ++ field_name;
         if (!@hasDecl(h, cname)) fail(cname ++ " is not in the header");
-        if (@field(h, cname) != f.value) fail(cname ++ " changed value");
+        if (@field(h, cname) != value) fail(cname ++ " changed value");
     }
 }
 
@@ -82,23 +81,23 @@ test "ABI: c.zig agrees with api.h, and binds all of it" {
     comptime {
         @setEvalBranchQuota(200_000);
         // Forward: every extern here matches the header.
-        for (@typeInfo(c).@"struct".decls) |d| {
-            if (std.mem.startsWith(u8, d.name, "ts_") and @typeInfo(@TypeOf(@field(c, d.name))) == .@"fn") {
-                if (!@hasDecl(h, d.name)) fail(d.name ++ " is not in the header");
-                checkFunction(d.name);
+        for (@typeInfo(c).@"struct".decl_names) |name| {
+            if (std.mem.startsWith(u8, name, "ts_") and @typeInfo(@TypeOf(@field(c, name))) == .@"fn") {
+                if (!@hasDecl(h, name)) fail(name ++ " is not in the header");
+                checkFunction(name);
             }
         }
         // Reverse: every header function is bound or excluded by name.
         // Excluded names are skipped before they are touched: referring to an
         // extern the library does not define is an undefined symbol on ELF.
-        for (@typeInfo(h).@"struct".decls) |d| {
-            if (!std.mem.startsWith(u8, d.name, "ts_")) continue;
+        for (@typeInfo(h).@"struct".decl_names) |name| {
+            if (!std.mem.startsWith(u8, name, "ts_")) continue;
             const skip = for (excluded) |e| {
-                if (std.mem.eql(u8, e, d.name)) break true;
+                if (std.mem.eql(u8, e, name)) break true;
             } else false;
             if (skip) continue;
-            if (@typeInfo(@TypeOf(@field(h, d.name))) != .@"fn") continue;
-            if (!@hasDecl(c, d.name)) fail(d.name ++ " is in the header but not bound");
+            if (@typeInfo(@TypeOf(@field(h, name))) != .@"fn") continue;
+            if (!@hasDecl(c, name)) fail(name ++ " is in the header but not bound");
         }
         sameShape(c.TSPoint, h.TSPoint, "TSPoint");
         sameShape(c.TSRange, h.TSRange, "TSRange");

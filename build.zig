@@ -112,9 +112,11 @@ pub fn build(b: *std.Build) void {
         }),
     });
     unit.root_module.linkLibrary(runtime);
-    // The ABI guard @cImports the header; wired on the test module only, so
-    // the shipped module never compiles C.
-    unit.root_module.addIncludePath(b.path("libs/tree-sitter/lib/include"));
+    // The ABI guard reads the header through translate-c; wired on the test
+    // module only, so the shipped module never translates C.
+    const api_h = b.addTranslateC(.{ .root_source_file = b.path("libs/tree-sitter/lib/include/tree_sitter/api.h"), .target = target, .optimize = optimize });
+    api_h.addIncludePath(b.path("libs/tree-sitter/lib/include"));
+    unit.root_module.addImport("api_h", api_h.createModule());
 
     const tests = b.addTest(.{
         .name = "ztreesitter-tests",
@@ -172,7 +174,7 @@ pub fn build(b: *std.Build) void {
     });
     check.dependOn(&bench.step);
     const run_bench = b.addRunArtifact(bench);
-    if (b.args) |args| run_bench.addArgs(args);
+    run_bench.addPassthruArgs();
     b.step("bench", "Measure parse and tags-query throughput on the given files").dependOn(&run_bench.step);
 }
 
@@ -193,7 +195,7 @@ fn importChecks(b: *std.Build) void {
     });
     const run = b.addRunArtifact(checker);
     run.setCwd(b.path("."));
-    if (b.args) |args| run.addArgs(args);
+    run.addPassthruArgs();
     step.dependOn(&run.step);
 }
 
@@ -321,11 +323,12 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
             appendFmt(b, &source, "    .language_fn = @extern(*const fn () callconv(.c) *const ts.c.TSLanguage, .{{ .name = \"{s}\" }}),\n", .{g.symbol});
         }
         appendFmt(b, &source, "    .licence = \"{s}\",\n    .url = \"{s}\",\n    .commit = \"{s}\",\n    .queries = .{{\n", .{ g.licence, g.url, g.commit });
-        inline for (@typeInfo(schema.Queries).@"struct".fields) |field| {
-            const list = @field(g.queries, field.name);
+        inline for (@typeInfo(schema.Queries).@"struct".field_names) |field_name| {
+            const list = @field(g.queries, field_name);
+
             if (list.len != 0) {
                 const dialect = if (list[0].source == .nvim) "neovim" else "tree_sitter";
-                appendFmt(b, &source, "        .{s} = .{{ .dialect = .{s}, .text = ", .{ field.name, dialect });
+                appendFmt(b, &source, "        .{s} = .{{ .dialect = .{s}, .text = ", .{ field_name, dialect });
                 for (list, 0..) |q, i| {
                     const path: std.Build.LazyPath = switch (q.source) {
                         .nvim => nvim.?.path(q.path),
@@ -333,7 +336,7 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
                         .grammar => dep.path(q.path),
                         .ztreesitter => owner.path(q.path),
                     };
-                    const name = b.fmt("queries/{s}/{s}.{d}.scm", .{ g.name, field.name, i });
+                    const name = b.fmt("queries/{s}/{s}.{d}.scm", .{ g.name, field_name, i });
                     _ = files.addCopyFile(path, name);
                     appendFmt(b, &source, "{s}@embedFile(\"{s}\")", .{ if (i == 0) "" else " ++ \"\\n\" ++ ", name });
                 }
