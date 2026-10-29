@@ -762,8 +762,8 @@
             .lazy = true,
         },
         .grammar_latex = .{
-            .url = "https://github.com/pedronaugusto/ztreesitter/archive/791eef87b4a97c010cdbbec69e7409cebdec66f8.tar.gz",
-            .hash = "N-V-__8AAHcPpQJWSiGiQ-Jc498CJSOGni9YOQ_s5AtwSoN_",
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/4bc493db73c3c166fc8b54dbe19181ec8ffa64fc.tar.gz",
+            .hash = "N-V-__8AAJgPpQLBjgKnravKuv8A0ZTwIWHW00pCqQDT2KZB",
             .lazy = true,
         },
         .grammar_ledger = .{
@@ -952,8 +952,8 @@
             .lazy = true,
         },
         .grammar_perl = .{
-            .url = "https://github.com/pedronaugusto/ztreesitter/archive/748bef6b45f0011511a29b85c5388e101de62d35.tar.gz",
-            .hash = "N-V-__8AAN7FxgHeOaKrh3bGsdcK-1SKCfpakbOllxq3VfUp",
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/2a64dbadd85ec2b7478d772ee52c9a44f6488771.tar.gz",
+            .hash = "N-V-__8AAP_FxgEJi5IQScxtoYxO-lCB6hNjj06ifwdmyiG8",
             .lazy = true,
         },
         .grammar_php = .{
@@ -987,8 +987,8 @@
             .lazy = true,
         },
         .grammar_pod = .{
-            .url = "https://github.com/pedronaugusto/ztreesitter/archive/0618f889bbe848a8eff388e1642e4c0a2a5142d1.tar.gz",
-            .hash = "N-V-__8AAM15AQC9v-eaWkZA8qRC99bHR6SNsTyv0cj3CUyf",
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/f420c53b53acb3197d3b15c719b07c9a5ecfc5b1.tar.gz",
+            .hash = "N-V-__8AAN95AQACowG0cXaxJUhzpbnlOM25fRJkIcehK2RI",
             .lazy = true,
         },
         .grammar_poe_filter = .{
@@ -1342,8 +1342,8 @@
             .lazy = true,
         },
         .grammar_swift = .{
-            .url = "https://github.com/pedronaugusto/ztreesitter/archive/a74a0eeb9898ae4c476062e4feee816103ccd06a.tar.gz",
-            .hash = "N-V-__8AAHvAUQGxclhkQiKD78mwbb0rFtMm9kTZg2MMqHpV",
+            .url = "https://github.com/pedronaugusto/ztreesitter/archive/240f703e205da1b7ffd216d5422f3504c47bd737.tar.gz",
+            .hash = "N-V-__8AAJzAUQG92-qHEVEhK6a1eK62arw-8rb4Ms2MCZ65",
             .lazy = true,
         },
         .grammar_sxhkdrc = .{

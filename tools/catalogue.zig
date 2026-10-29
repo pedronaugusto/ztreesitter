@@ -797,7 +797,7 @@ fn inspect(ctx: *github.Context, shared: *Shared, name: []const u8, info: Lua) !
         }
     }
     const facts = if (needs_generation) blk: {
-        const out = ctx.path(&.{ ctx.cache, "generated", try ctx.arena.print("{s}-{s}", .{ name, commit[0..12] }) });
+        const out = ctx.path(&.{ ctx.cache, "generated", try ctx.arena.print("{s}-{s}{s}", .{ name, commit[0..12], generator_suffix }) });
         if (!github.isFile(ctx.io, ctx.path(&.{ out, "parser.c" }))) {
             const tmp = try ctx.temporary();
             defer github.remove(ctx, tmp);
@@ -960,14 +960,37 @@ const Group = struct {
     ref: []const u8 = "",
     problems: []const []const u8 = &.{},
     err: ?anyerror = null,
+
+    fn generates(g: *const Group) bool {
+        for (g.entries.items) |e| if (e.generated != null) return true;
+        return false;
+    }
 };
+
+/// What a generated mirror's ref ends with: the generator, the CLI at the
+/// runtime's version.
+const generator_suffix = "-tree-sitter-" ++ runtime_version;
+
+/// A mirror's ref names everything that determined its bytes: upstream's
+/// commit and, when the tool generated a parser in it, the generator's
+/// version. A grammar that ships its own parser.c has no generator to name.
+fn mirrorRef(arena: Allocator, group: *const Group) ![]const u8 {
+    const first = group.entries.items[0];
+    const repo = try github.Repository.parse(first.url);
+    return arena.print("refs/mirror/{s}/{s}/{s}{s}", .{ repo.owner, repo.name, first.commit, if (group.generates()) generator_suffix else "" });
+}
+
+/// Refuses a ref that names a generator other than what the mirror holds.
+fn checkRef(group: *const Group) !void {
+    if (group.generates() != std.mem.endsWith(u8, group.ref, generator_suffix)) return error.MirrorRef;
+}
 
 /// One mirror tree per repository at a commit: the files the build reads,
 /// at upstream's own paths, plus generated parsers and a PROVENANCE note.
 fn mirror(ctx: *github.Context, group: *Group) !void {
     const first = group.entries.items[0];
-    const repo = try github.Repository.parse(first.url);
-    const out = ctx.path(&.{ ctx.cache, "mirror", try ctx.arena.print("{s}--{s}--{s}", .{ repo.owner, repo.name, first.commit }) });
+    group.ref = try mirrorRef(ctx.arena, group);
+    const out = ctx.path(&.{ ctx.cache, "mirror", try std.mem.replaceOwned(u8, ctx.arena, group.ref["refs/mirror/".len..], "/", "--") });
     try Io.Dir.cwd().deleteTree(ctx.io, out);
 
     var locations: std.ArrayList([]const u8) = .empty;
@@ -998,7 +1021,6 @@ fn mirror(ctx: *github.Context, group: *Group) !void {
     try Io.Dir.cwd().writeFile(ctx.io, .{ .sub_path = ctx.path(&.{ out, "PROVENANCE" }), .data = text.items });
 
     group.out = out;
-    group.ref = try ctx.arena.print("refs/mirror/{s}/{s}/{s}", .{ repo.owner, repo.name, first.commit });
     group.problems = try checkPaths(ctx, files);
 }
 
@@ -1010,10 +1032,14 @@ fn mirrorTask(ctx: *github.Context, group: *Group) void {
 
 /// An orphan commit in this repository holding the mirror, under a ref
 /// namespace `git clone` does not fetch. A ref that exists is the mirror:
-/// an upstream commit does not change, so neither may the files chosen from
-/// it, and a run that would choose others stops (PROVENANCE's wording may
-/// differ).
+/// what its name names does not change, so neither may the files chosen
+/// for it, and a run that would choose others stops (PROVENANCE's wording
+/// may differ).
 fn publishMirror(ctx: *github.Context, root: []const u8, group: *const Group) ![]const u8 {
+    checkRef(group) catch |err| {
+        std.log.err("{s}: a mirror's ref names the generator of the parsers in it, and only those", .{group.ref});
+        return err;
+    };
     const first = group.entries.items[0];
     const index = try ctx.arena.print("{s}.index", .{group.out});
     defer github.remove(ctx, index);
@@ -1318,8 +1344,10 @@ fn writeReport(ctx: *github.Context, o: Options, entries: []const *Entry, query_
         \\
         \\Every grammar is fetched from a mirror in this repository: the files its build
         \\and its queries read, at the grammar repository's own paths, published as an
-        \\orphan commit under `refs/mirror/<owner>/<repo>/<commit>`. Its `PROVENANCE` file
-        \\says what was generated; every other file is upstream's, unmodified.
+        \\orphan commit under `refs/mirror/<owner>/<repo>/<commit>`, or
+        \\`<commit>-tree-sitter-<version>` when this repository generated its parser with
+        \\that CLI. Its `PROVENANCE` file says what was generated; every other file is
+        \\upstream's, unmodified.
         \\
         \\| grammar | status | ABI | scanner | parser | tags | licence | notes |
         \\|---|---|---:|:---:|---|---|---|---|
@@ -1509,4 +1537,39 @@ fn catalogue(ctx: *github.Context, o: Options) !u8 {
     try writeReport(ctx, o, entries.items, query_only.items);
     std.log.info("catalogue: {d} grammars written", .{entries.items.len});
     return 0;
+}
+
+test "a generated mirror is written only under a ref that names its generator" {
+    var arena: std.heap.ArenaAllocator = .init(std.testing.allocator);
+    defer arena.deinit();
+    const a = arena.allocator();
+    var entry: Entry = .{
+        .name = "swift",
+        .url = "https://github.com/alex-pinkus/tree-sitter-swift",
+        .revision = "0123456789abcdef0123456789abcdef01234567",
+        .commit = "0123456789abcdef0123456789abcdef01234567",
+        .location = "",
+        .repo = "",
+        .tier = 2,
+        .requires = &.{},
+        .scanner = true,
+        .status = .ok,
+    };
+    var group: Group = .{};
+    try group.entries.append(a, &entry);
+
+    // Upstream's parser.c: the commit alone, and a generator named is refused.
+    group.ref = try mirrorRef(a, &group);
+    try std.testing.expectEqualStrings("refs/mirror/alex-pinkus/tree-sitter-swift/0123456789abcdef0123456789abcdef01234567", group.ref);
+    try checkRef(&group);
+    group.ref = try a.print("{s}{s}", .{ group.ref, generator_suffix });
+    try std.testing.expectError(error.MirrorRef, checkRef(&group));
+
+    // Generated: the commit and the generator, and the commit alone is refused.
+    entry.generated = "generated/swift";
+    group.ref = try mirrorRef(a, &group);
+    try std.testing.expectEqualStrings("refs/mirror/alex-pinkus/tree-sitter-swift/0123456789abcdef0123456789abcdef01234567-tree-sitter-" ++ runtime_version, group.ref);
+    try checkRef(&group);
+    group.ref = "refs/mirror/alex-pinkus/tree-sitter-swift/0123456789abcdef0123456789abcdef01234567";
+    try std.testing.expectError(error.MirrorRef, checkRef(&group));
 }

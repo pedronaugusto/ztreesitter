@@ -70,10 +70,17 @@ zig build catalogue -- --nvim-treesitter <commit> --helix <commit> --tree-sitter
 
 It writes `build.zig.zon`'s generated block, `grammars/catalogue.zig` and
 `docs/grammars.md`, and publishes one mirror per grammar repository as an
-orphan commit under `refs/mirror/<owner>/<repo>/<commit>` in this repository.
-Push them with `git push origin 'refs/mirror/*'`. A mirror holds the files a
-grammar's build and queries read, at upstream's paths, unmodified, plus any
-`parser.c` the tool generated; its `PROVENANCE` file says which.
+orphan commit in this repository. Push them with `git push origin
+'refs/mirror/*'`. A mirror holds the files a grammar's build and queries read,
+at upstream's paths, unmodified, plus any `parser.c` the tool generated; its
+`PROVENANCE` file says which, and by which generator.
+
+A mirror's ref names everything that determined its bytes:
+`refs/mirror/<owner>/<repo>/<commit>` for upstream's files alone, and
+`<commit>-tree-sitter-<version>` when the tool generated a parser in it. A
+published ref never moves: a new CLI writes generated mirrors under new refs,
+and the tool refuses a generated mirror under a ref that does not name its
+generator.
 
 Four grammars commit no `parser.c` (latex, perl, pod, swift). The tool
 generates theirs with the tree-sitter CLI at the runtime's version, using its

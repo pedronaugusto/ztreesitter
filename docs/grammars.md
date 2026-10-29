@@ -22,8 +22,10 @@ Query-only languages, inherited by others: ecma, html_tags, jsx.
 
 Every grammar is fetched from a mirror in this repository: the files its build
 and its queries read, at the grammar repository's own paths, published as an
-orphan commit under `refs/mirror/<owner>/<repo>/<commit>`. Its `PROVENANCE` file
-says what was generated; every other file is upstream's, unmodified.
+orphan commit under `refs/mirror/<owner>/<repo>/<commit>`, or
+`<commit>-tree-sitter-<version>` when this repository generated its parser with
+that CLI. Its `PROVENANCE` file says what was generated; every other file is
+upstream's, unmodified.
 
 | grammar | status | ABI | scanner | parser | tags | licence | notes |
 |---|---|---:|:---:|---|---|---|---|
@@ -34,7 +36,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [arduino](https://github.com/tree-sitter-grammars/tree-sitter-arduino) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [asm](https://github.com/RubixDev/tree-sitter-asm) | untested | 14 |  | upstream |  | MIT |  |
 | [astro](https://github.com/virchau13/tree-sitter-astro) | untested | 14 | yes | upstream |  | MIT |  |
-| [authzed](https://github.com/mleonidas/tree-sitter-authzed) | untested | 15 |  | upstream |  | unknown | no licence file; declared MIT |
+| [authzed](https://github.com/mleonidas/tree-sitter-authzed) | untested | 15 |  | upstream |  | MIT | no licence file; declared MIT |
 | [awk](https://github.com/Beaglefoot/tree-sitter-awk) | untested | 14 | yes | upstream |  | MIT |  |
 | [bash](https://github.com/tree-sitter/tree-sitter-bash) | ok | 15 | yes | upstream | Helix | MIT |  |
 | [bass](https://github.com/vito/tree-sitter-bass) | untested | 14 |  | upstream |  | MIT |  |
@@ -43,12 +45,12 @@ says what was generated; every other file is upstream's, unmodified.
 | [bicep](https://github.com/tree-sitter-grammars/tree-sitter-bicep) | untested | 14 | yes | upstream |  | MIT |  |
 | [bitbake](https://github.com/tree-sitter-grammars/tree-sitter-bitbake) | untested | 14 | yes | upstream |  | MIT |  |
 | [blade](https://github.com/EmranMR/tree-sitter-blade) | untested | 15 | yes | upstream |  | MIT |  |
-| [bp](https://github.com/ambroisie/tree-sitter-bp) | untested | 15 |  | upstream |  | unknown | no licence file; declared MIT |
+| [bp](https://github.com/ambroisie/tree-sitter-bp) | untested | 15 |  | upstream |  | MIT | no licence file; declared MIT |
 | [bpftrace](https://github.com/sgruszka/tree-sitter-bpftrace) | untested | 15 | yes | upstream |  | MIT |  |
-| [brightscript](https://github.com/ajdelcimmuto/tree-sitter-brightscript) | untested | 14 |  | upstream |  | unknown | no licence file; declared ISC |
+| [brightscript](https://github.com/ajdelcimmuto/tree-sitter-brightscript) | untested | 14 |  | upstream |  | ISC | no licence file; declared ISC |
 | [c](https://github.com/tree-sitter/tree-sitter-c) | ok | 15 |  | upstream | grammar | MIT |  |
 | [c3](https://github.com/c3lang/tree-sitter-c3) | untested | 15 | yes | upstream |  | MIT |  |
-| [c_sharp](https://github.com/tree-sitter/tree-sitter-c-sharp) | ok | 15 | yes | upstream | grammar | MIT |  |
+| [c_sharp](https://github.com/tree-sitter/tree-sitter-c-sharp) | ok | 15 | yes | upstream | ztreesitter | MIT |  |
 | [caddy](https://github.com/opa-oz/tree-sitter-caddy) | untested | 14 | yes | upstream |  | GPL-3.0 |  |
 | [cairo](https://github.com/tree-sitter-grammars/tree-sitter-cairo) | untested | 14 | yes | upstream |  | MIT |  |
 | [capnp](https://github.com/tree-sitter-grammars/tree-sitter-capnp) | untested | 14 |  | upstream |  | MIT |  |
@@ -58,8 +60,8 @@ says what was generated; every other file is upstream's, unmodified.
 | [cmake](https://github.com/uyha/tree-sitter-cmake) | untested | 14 | yes | upstream |  | MIT |  |
 | [comment](https://github.com/stsewd/tree-sitter-comment) | untested | 15 | yes | upstream |  | MIT |  |
 | [commonlisp](https://github.com/tree-sitter-grammars/tree-sitter-commonlisp) | untested | 14 |  | upstream | grammar | MIT |  |
-| [cooklang](https://github.com/addcninblue/tree-sitter-cooklang) | untested | 14 | yes | upstream |  | unknown | no licence file; declared ISC |
-| [corn](https://github.com/jakestanger/tree-sitter-corn) | untested | 14 |  | upstream |  | unknown | no licence file; declared MIT |
+| [cooklang](https://github.com/addcninblue/tree-sitter-cooklang) | untested | 14 | yes | upstream |  | ISC | no licence file; declared ISC |
+| [corn](https://github.com/jakestanger/tree-sitter-corn) | untested | 14 |  | upstream |  | MIT | no licence file; declared MIT |
 | [cpon](https://github.com/tree-sitter-grammars/tree-sitter-cpon) | untested | 14 |  | upstream |  | MIT |  |
 | [cpp](https://github.com/tree-sitter/tree-sitter-cpp) | ok | 15 | yes | upstream | grammar | MIT |  |
 | [css](https://github.com/tree-sitter/tree-sitter-css) | ok | 15 | yes | upstream |  | MIT |  |
@@ -82,16 +84,16 @@ says what was generated; every other file is upstream's, unmodified.
 | [earthfile](https://github.com/glehmann/tree-sitter-earthfile) | untested | 15 | yes | upstream |  | MIT |  |
 | [ebnf](https://github.com/RubixDev/ebnf) | untested | 14 |  | upstream |  | MIT |  |
 | [editorconfig](https://github.com/ValdezFOmar/tree-sitter-editorconfig) | untested | 15 | yes | upstream |  | MIT |  |
-| [eds](https://github.com/uyha/tree-sitter-eds) | untested | 14 |  | upstream |  | unknown | no licence file; declared MIT |
-| [eex](https://github.com/connorlay/tree-sitter-eex) | untested | 13 |  | upstream |  | unknown | no licence file; declared MIT |
+| [eds](https://github.com/uyha/tree-sitter-eds) | untested | 14 |  | upstream |  | MIT | no licence file; declared MIT |
+| [eex](https://github.com/connorlay/tree-sitter-eex) | untested | 13 |  | upstream |  | MIT | no licence file; declared MIT |
 | [elixir](https://github.com/elixir-lang/tree-sitter-elixir) | untested | 14 | yes | upstream | grammar | Apache-2.0 |  |
 | [elm](https://github.com/elm-tooling/tree-sitter-elm) | untested | 15 | yes | upstream | grammar | MIT |  |
-| [elsa](https://github.com/glapa-grossklag/tree-sitter-elsa) | untested | 14 |  | upstream |  | unknown | no licence file; declared MIT |
+| [elsa](https://github.com/glapa-grossklag/tree-sitter-elsa) | untested | 14 |  | upstream |  | MIT | no licence file; declared MIT |
 | [elvish](https://github.com/elves/tree-sitter-elvish) | untested | 14 |  | upstream |  | 0BSD |  |
 | [embedded_template](https://github.com/tree-sitter/tree-sitter-embedded-template) | untested | 15 |  | upstream |  | MIT |  |
 | [enforce](https://github.com/simonvic/tree-sitter-enforce) | untested | 15 |  | upstream | grammar | MIT |  |
 | [erlang](https://github.com/WhatsApp/tree-sitter-erlang) | untested | 15 | yes | upstream |  | Apache-2.0 |  |
-| [facility](https://github.com/FacilityApi/tree-sitter-facility) | untested | 14 |  | upstream |  | unknown | no licence file; declared MIT |
+| [facility](https://github.com/FacilityApi/tree-sitter-facility) | untested | 14 |  | upstream |  | MIT | no licence file; declared MIT |
 | [faust](https://github.com/khiner/tree-sitter-faust) | untested | 15 |  | upstream |  | MIT |  |
 | [fennel](https://github.com/alexmozaidze/tree-sitter-fennel) | untested | 15 | yes | upstream |  | CC0-1.0 | file says CC0-1.0, declared CC0, ISC |
 | [fidl](https://github.com/google/tree-sitter-fidl) | untested | 15 |  | upstream |  | Apache-2.0 |  |
@@ -100,7 +102,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [foam](https://github.com/FoamScience/tree-sitter-foam) | untested | 15 | yes | upstream |  | MIT |  |
 | [forth](https://github.com/AlexanderBrevig/tree-sitter-forth) | untested | 15 |  | upstream |  | MIT |  |
 | [fortran](https://github.com/stadelmanma/tree-sitter-fortran) | untested | 15 | yes | upstream | grammar | MIT |  |
-| [fsh](https://github.com/mgramigna/tree-sitter-fsh) | untested | 14 |  | upstream |  | unknown | no licence file; declared Apache-2.0 |
+| [fsh](https://github.com/mgramigna/tree-sitter-fsh) | untested | 14 |  | upstream |  | Apache-2.0 | no licence file; declared Apache-2.0 |
 | [fsharp](https://github.com/ionide/tree-sitter-fsharp) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [func](https://github.com/tree-sitter-grammars/tree-sitter-func) | untested | 14 |  | upstream |  | MIT |  |
 | [gap](https://github.com/gap-system/tree-sitter-gap) | untested | 15 | yes | upstream | grammar | MIT |  |
@@ -130,7 +132,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [graphql](https://github.com/bkegley/tree-sitter-graphql) | untested | 13 |  | upstream |  | MIT |  |
 | [gren](https://github.com/MaeBrooks/tree-sitter-gren) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [groovy](https://github.com/murtaza64/tree-sitter-groovy) | untested | 15 |  | upstream |  | MIT |  |
-| [groq](https://github.com/ajrussellaudio/tree-sitter-groq) | untested | 15 |  | upstream |  | unknown | no licence file; declared MIT |
+| [groq](https://github.com/ajrussellaudio/tree-sitter-groq) | untested | 15 |  | upstream |  | MIT | no licence file; declared MIT |
 | [gstlaunch](https://github.com/tree-sitter-grammars/tree-sitter-gstlaunch) | untested | 14 |  | upstream |  | MIT |  |
 | [hack](https://github.com/slackhq/tree-sitter-hack) | untested | 13 | yes | upstream |  | MIT |  |
 | [hare](https://github.com/tree-sitter-grammars/tree-sitter-hare) | untested | 15 |  | upstream |  | MIT |  |
@@ -171,7 +173,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [kconfig](https://github.com/tree-sitter-grammars/tree-sitter-kconfig) | untested | 14 | yes | upstream |  | MIT |  |
 | [kdl](https://github.com/tree-sitter-grammars/tree-sitter-kdl) | untested | 15 | yes | upstream |  | MIT |  |
 | [kitty](https://github.com/OXY2DEV/tree-sitter-kitty) | untested | 15 |  | upstream |  | MIT |  |
-| [kos](https://github.com/kos-lang/tree-sitter-kos) | untested | 15 |  | upstream |  | unknown | no licence file; declared MIT |
+| [kos](https://github.com/kos-lang/tree-sitter-kos) | untested | 15 |  | upstream |  | MIT | no licence file; declared MIT |
 | [kotlin](https://github.com/fwcd/tree-sitter-kotlin) | untested | 14 | yes | upstream | grammar | MIT |  |
 | [koto](https://github.com/koto-lang/tree-sitter-koto) | untested | 14 | yes | upstream |  | MIT |  |
 | [kusto](https://github.com/Willem-J-an/tree-sitter-kusto) | untested | 14 |  | upstream |  | MIT | file says MIT, declared ISC |
@@ -181,7 +183,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [leo](https://github.com/r001/tree-sitter-leo) | untested | 14 |  | upstream |  | Apache-2.0 | file says Apache-2.0, declared MIT |
 | [linkerscript](https://github.com/tree-sitter-grammars/tree-sitter-linkerscript) | untested | 14 |  | upstream |  | MIT |  |
 | [liquid](https://github.com/hankthetank27/tree-sitter-liquid) | untested | 14 | yes | upstream |  | MIT |  |
-| [liquidsoap](https://github.com/savonet/tree-sitter-liquidsoap) | untested | 15 | yes | upstream |  | unknown | no licence file; declared ISC, MIT |
+| [liquidsoap](https://github.com/savonet/tree-sitter-liquidsoap) | untested | 15 | yes | upstream |  | MIT | no licence file; declared ISC, MIT |
 | [llvm](https://github.com/benwilliamgraham/tree-sitter-llvm) | untested | 15 |  | upstream |  | MIT |  |
 | [lua](https://github.com/tree-sitter-grammars/tree-sitter-lua) | ok | 15 | yes | upstream | grammar | MIT |  |
 | [luadoc](https://github.com/tree-sitter-grammars/tree-sitter-luadoc) | untested | 15 |  | upstream |  | MIT |  |
@@ -218,7 +220,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [php](https://github.com/tree-sitter/tree-sitter-php) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [php_only](https://github.com/tree-sitter/tree-sitter-php) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [phpdoc](https://github.com/claytonrcarter/tree-sitter-phpdoc) | untested | 14 | yes | upstream |  | MIT |  |
-| [pioasm](https://github.com/leo60228/tree-sitter-pioasm) | untested | 14 | yes | upstream |  | unknown | no licence file; declared ISC |
+| [pioasm](https://github.com/leo60228/tree-sitter-pioasm) | untested | 14 | yes | upstream |  | ISC | no licence file; declared ISC |
 | [pkl](https://github.com/apple/tree-sitter-pkl) | untested | 15 | yes | upstream |  | Apache-2.0 |  |
 | [po](https://github.com/tree-sitter-grammars/tree-sitter-po) | untested | 14 |  | upstream |  | MIT |  |
 | [pod](https://github.com/tree-sitter-perl/tree-sitter-pod) | untested | 15 | yes | generated |  | Artistic-2.0 |  |
@@ -254,14 +256,14 @@ says what was generated; every other file is upstream's, unmodified.
 | [requirements](https://github.com/tree-sitter-grammars/tree-sitter-requirements) | untested | 15 |  | upstream |  | MIT |  |
 | [rescript](https://github.com/rescript-lang/tree-sitter-rescript) | untested | 15 | yes | upstream |  | MIT |  |
 | [rifleconf](https://github.com/purarue/tree-sitter-rifleconf) | untested | 15 |  | upstream |  | MIT |  |
-| [rnoweb](https://github.com/bamonroe/tree-sitter-rnoweb) | untested | 13 | yes | upstream |  | unknown | no licence file; declared GPL-3.0-or-later |
+| [rnoweb](https://github.com/bamonroe/tree-sitter-rnoweb) | untested | 13 | yes | upstream |  | GPL-3.0-or-later | no licence file; declared GPL-3.0-or-later |
 | [robot](https://github.com/Hubro/tree-sitter-robot) | untested | 15 |  | upstream |  | ISC |  |
 | [robots_txt](https://github.com/opa-oz/tree-sitter-robots-txt) | untested | 15 | yes | upstream |  | MIT |  |
 | [roc](https://github.com/faldor20/tree-sitter-roc) | untested | 14 | yes | upstream | grammar | MIT | file says MIT, declared ISC |
 | [ron](https://github.com/tree-sitter-grammars/tree-sitter-ron) | untested | 14 | yes | upstream | Helix | Apache-2.0 | file says Apache-2.0, declared MIT |
 | [rst](https://github.com/stsewd/tree-sitter-rst) | untested | 14 | yes | upstream | Helix | MIT |  |
 | [ruby](https://github.com/tree-sitter/tree-sitter-ruby) | untested | 14 | yes | upstream | grammar | MIT |  |
-| [runescript](https://github.com/2004Scape/tree-sitter-runescript) | untested | 14 | yes | upstream |  | unknown | no licence file; declared MIT |
+| [runescript](https://github.com/2004Scape/tree-sitter-runescript) | untested | 14 | yes | upstream |  | MIT | no licence file; declared MIT |
 | [rust](https://github.com/tree-sitter/tree-sitter-rust) | ok | 15 | yes | upstream | grammar | MIT |  |
 | [scala](https://github.com/tree-sitter/tree-sitter-scala) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [scfg](https://github.com/rockorager/tree-sitter-scfg) | untested | 15 |  | upstream |  | MIT |  |
@@ -269,8 +271,8 @@ says what was generated; every other file is upstream's, unmodified.
 | [scss](https://github.com/serenadeai/tree-sitter-scss) | ok | 13 | yes | upstream |  | MIT |  |
 | [sflog](https://github.com/aheber/tree-sitter-sfapex) | untested | 15 |  | upstream |  | MIT |  |
 | [slang](https://github.com/tree-sitter-grammars/tree-sitter-slang) | untested | 15 | yes | upstream |  | MIT |  |
-| [slim](https://github.com/theoo/tree-sitter-slim) | untested | 14 | yes | upstream |  | unknown | no licence file; declared MIT |
-| [slint](https://github.com/slint-ui/tree-sitter-slint) | untested | 15 |  | upstream |  | unknown | no licence file; declared MIT |
+| [slim](https://github.com/theoo/tree-sitter-slim) | untested | 14 | yes | upstream |  | MIT | no licence file; declared MIT |
+| [slint](https://github.com/slint-ui/tree-sitter-slint) | untested | 15 |  | upstream |  | MIT | no licence file; declared MIT |
 | [smali](https://github.com/tree-sitter-grammars/tree-sitter-smali) | untested | 14 | yes | upstream |  | MIT |  |
 | [smithy](https://github.com/indoorvivants/tree-sitter-smithy) | untested | 14 |  | upstream |  | MIT |  |
 | [snakemake](https://github.com/osthomas/tree-sitter-snakemake) | untested | 15 | yes | upstream |  | MIT |  |
@@ -280,23 +282,23 @@ says what was generated; every other file is upstream's, unmodified.
 | [sosl](https://github.com/aheber/tree-sitter-sfapex) | untested | 15 |  | upstream |  | MIT |  |
 | [sourcepawn](https://github.com/nilshelmig/tree-sitter-sourcepawn) | untested | 15 | yes | upstream | grammar | MIT |  |
 | [sparql](https://github.com/GordianDziwis/tree-sitter-sparql) | untested | 15 |  | upstream |  | MIT |  |
-| [sproto](https://github.com/hanxi/tree-sitter-sproto) | untested | 15 |  | upstream |  | unknown | no licence file; declared MIT |
+| [sproto](https://github.com/hanxi/tree-sitter-sproto) | untested | 15 |  | upstream |  | MIT | no licence file; declared MIT |
 | [sql](https://github.com/derekstride/tree-sitter-sql) | untested | 15 | yes | upstream |  | MIT |  |
 | [squirrel](https://github.com/tree-sitter-grammars/tree-sitter-squirrel) | untested | 14 | yes | upstream |  | MIT |  |
 | [ssh_config](https://github.com/tree-sitter-grammars/tree-sitter-ssh-config) | untested | 15 |  | upstream |  | MIT |  |
 | [starlark](https://github.com/tree-sitter-grammars/tree-sitter-starlark) | untested | 14 | yes | upstream |  | MIT |  |
 | [strace](https://github.com/sigmaSd/tree-sitter-strace) | untested | 15 |  | upstream |  | MIT |  |
 | [styled](https://github.com/mskelton/tree-sitter-styled) | untested | 14 | yes | upstream |  | ISC |  |
-| [supercollider](https://github.com/madskjeldgaard/tree-sitter-supercollider) | untested | 15 | yes | upstream |  | unknown | no licence file; declared ISC, MIT |
+| [supercollider](https://github.com/madskjeldgaard/tree-sitter-supercollider) | untested | 15 | yes | upstream |  | MIT | no licence file; declared ISC, MIT |
 | [superhtml](https://github.com/kristoff-it/superhtml) | untested | 14 | yes | upstream |  | MIT |  |
-| [surface](https://github.com/connorlay/tree-sitter-surface) | untested | 13 |  | upstream |  | unknown | no licence file; declared MIT |
+| [surface](https://github.com/connorlay/tree-sitter-surface) | untested | 13 |  | upstream |  | MIT | no licence file; declared MIT |
 | [svelte](https://github.com/tree-sitter-grammars/tree-sitter-svelte) | untested | 14 | yes | upstream |  | MIT |  |
 | [sway](https://github.com/FuelLabs/tree-sitter-sway) | untested | 14 | yes | upstream |  | Apache-2.0 |  |
-| [swift](https://github.com/alex-pinkus/tree-sitter-swift) | ok | 15 | yes | generated | grammar | MIT |  |
+| [swift](https://github.com/alex-pinkus/tree-sitter-swift) | ok | 15 | yes | generated | ztreesitter | MIT |  |
 | [sxhkdrc](https://github.com/RaafatTurki/tree-sitter-sxhkdrc) | untested | 13 |  | upstream |  | MIT | file says MIT, declared ISC |
 | [systemtap](https://github.com/ok-ryoko/tree-sitter-systemtap) | untested | 14 |  | upstream |  | MIT |  |
 | [systemverilog](https://github.com/gmlarumbe/tree-sitter-systemverilog) | untested | 15 |  | upstream |  | MIT |  |
-| [t32](https://github.com/xasc/tree-sitter-t32) | untested | 15 | yes | upstream | grammar | unknown | no licence file; declared MIT |
+| [t32](https://github.com/xasc/tree-sitter-t32) | untested | 15 | yes | upstream | grammar | MIT | no licence file; declared MIT |
 | [tablegen](https://github.com/tree-sitter-grammars/tree-sitter-tablegen) | untested | 14 | yes | upstream |  | MIT |  |
 | [tact](https://github.com/tact-lang/tree-sitter-tact) | untested | 14 |  | upstream | grammar | MIT |  |
 | [tcl](https://github.com/tree-sitter-grammars/tree-sitter-tcl) | untested | 15 | yes | upstream |  | MIT |  |
@@ -336,7 +338,7 @@ says what was generated; every other file is upstream's, unmodified.
 | [wgsl_bevy](https://github.com/tree-sitter-grammars/tree-sitter-wgsl-bevy) | untested | 14 | yes | upstream |  | MIT |  |
 | [wing](https://github.com/winglang/tree-sitter-wing) | untested | 14 | yes | upstream |  | unknown | no licence file and no declaration |
 | [wit](https://github.com/bytecodealliance/tree-sitter-wit) | untested | 15 | yes | upstream |  | Apache-2.0 |  |
-| [wxml](https://github.com/BlockLune/tree-sitter-wxml) | untested | 15 | yes | upstream |  | unknown | no licence file; declared MIT |
+| [wxml](https://github.com/BlockLune/tree-sitter-wxml) | untested | 15 | yes | upstream |  | MIT | no licence file; declared MIT |
 | [xcompose](https://github.com/tree-sitter-grammars/tree-sitter-xcompose) | untested | 15 |  | upstream |  | MIT |  |
 | [xml](https://github.com/tree-sitter-grammars/tree-sitter-xml) | untested | 14 | yes | upstream |  | MIT |  |
 | [xresources](https://github.com/ValdezFOmar/tree-sitter-xresources) | untested | 15 |  | upstream |  | MIT |  |

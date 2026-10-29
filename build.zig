@@ -256,6 +256,20 @@ pub fn dev(b: *std.Build, tools: type) void {
     regenerate.addPassthruArgs();
     b.step("catalogue", "Regenerate the grammar catalogue: -- --nvim-treesitter COMMIT --helix COMMIT [--tree-sitter PATH] [--only a,b]").dependOn(&regenerate.step);
 
+    // The catalogue tool's own tests, on the host, with the others.
+    const catalogue_tests = b.addTest(.{
+        .name = "catalogue-tests",
+        .filters = filters,
+        .root_module = b.createModule(.{
+            .root_source_file = p.path("tools/catalogue.zig"),
+            .target = b.graph.host,
+            .optimize = optimize,
+            .imports = &.{.{ .name = "aegis", .module = host_aegis }},
+        }),
+    });
+    test_step.dependOn(&b.addRunArtifact(catalogue_tests).step);
+    check.dependOn(&catalogue_tests.step);
+
     tools.preflight.addCi(b, p, .{
         .tests = test_step,
         .bench = .{
