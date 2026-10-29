@@ -16,8 +16,8 @@ Taken: `lib/src`, `lib/include` and `LICENSE`, at their upstream paths. Left
 out: the CLI, the bindings, the WebAssembly runtime's prebuilt pieces, the
 tests and every build system; `build.zig` compiles `lib/src/lib.c`, the one
 translation unit upstream's own builds use, with the same macros.
-`ci/verify-vendor.sh` clones the tag and diffs the three paths with no
-exclusions.
+`zig build check-vendor` checks the tag still names the commit, downloads
+that commit and compares the three paths with no exclusions.
 
 Not compiled: WebAssembly grammar support (`TREE_SITTER_FEATURE_WASM`), which
 needs wasmtime. The five entry points that exist only with it are excluded by
@@ -33,8 +33,8 @@ so the undefined-behaviour sanitizer stops on it on Linux. With
 nvim-treesitter's `(#set! conceal "")`.
 
 To re-vendor: replace the three paths from the new tag, update this table,
-the constants at the top of `ci/verify-vendor.sh`, `runtime_version` in
-`src/ztreesitter.zig` and `RUNTIME_VERSION` in `tools/catalogue.py`, then run
+the constants at the top of `tools/upstream.zig`, `runtime_version` in
+`src/ztreesitter.zig` and in `tools/catalogue.zig`, then run
 the suite. The ABI guard fails the build if the header changed under
 `src/c.zig`.
 
@@ -42,10 +42,10 @@ the suite. The ABI guard fails the build if the header changed under
 
 The catalogue is nvim-treesitter's parser list, pinned by commit, with each
 grammar at the revision nvim-treesitter's queries are written against.
-`tools/catalogue.py` regenerates it:
+`zig build catalogue` (`tools/catalogue.zig`) regenerates it:
 
 ```sh
-tools/catalogue.py --nvim-treesitter <commit> --helix <commit> --tree-sitter <tree-sitter 0.27.0 CLI>
+zig build catalogue -- --nvim-treesitter <commit> --helix <commit> --tree-sitter <tree-sitter 0.27.0 CLI>
 ```
 
 | | |

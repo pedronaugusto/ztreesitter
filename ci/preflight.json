@@ -33,7 +33,8 @@
     "bench",
     "ci",
     "examples",
-    "build.zig"
+    "build.zig",
+    "tools"
   ],
   "glint": {
     "rules": [

@@ -169,6 +169,58 @@ pub fn dev(b: *std.Build, tools: type) void {
     examples.dependOn(&b.addRunArtifact(example).step);
     test_step.dependOn(examples);
 
+    //=====================================================================
+    // Upstream, over the network: the vendored runtime and the selected
+    // grammars' mirrors compared with what they copy, and the catalogue
+    // regenerated (tools/catalogue.zig; UPSTREAM.md has the procedure).
+    //=====================================================================
+
+    const upstream_cache: std.Build.LazyPath = .{ .relative = .{ .base = .local_cache, .sub_path = "ztreesitter-upstream" } };
+    const host_aegis = b.dependency("aegis", .{ .target = b.graph.host }).module("aegis");
+    const upstream = b.addExecutable(.{
+        .name = "upstream",
+        .root_module = b.createModule(.{
+            .root_source_file = p.path("tools/upstream.zig"),
+            .target = b.graph.host,
+            .imports = &.{.{ .name = "aegis", .module = host_aegis }},
+        }),
+    });
+    const vendor = b.addRunArtifact(upstream);
+    vendor.has_side_effects = true;
+    vendor.addArg("vendor");
+    vendor.addDirectoryArg2(p.path("."), .{});
+    vendor.addDirectoryArg2(upstream_cache, .{});
+    vendor.addFileArg(.zig_exe);
+    b.step("check-vendor", "Compare libs/tree-sitter with the pinned upstream commit (network)").dependOn(&vendor.step);
+
+    const mirror = b.addRunArtifact(upstream);
+    mirror.has_side_effects = true;
+    mirror.addArg("mirror");
+    mirror.addDirectoryArg2(upstream_cache, .{});
+    mirror.addFileArg(.zig_exe);
+    for (selectGrammars(b, names.items)) |g| {
+        const dep = (p.dependencyLazy(b.fmt("grammar_{s}", .{g.name}), .{}) catch null) orelse continue;
+        mirror.addArgs(&.{ g.name, g.url, g.commit });
+        mirror.addDirectoryArg2(dep.path("."), .{});
+    }
+    b.step("verify-mirror", "Compare each selected grammar's mirror with its upstream commit (network; -Dgrammars=all for every one)").dependOn(&mirror.step);
+
+    const generator = b.addExecutable(.{
+        .name = "catalogue",
+        .root_module = b.createModule(.{
+            .root_source_file = p.path("tools/catalogue.zig"),
+            .target = b.graph.host,
+            .imports = &.{.{ .name = "aegis", .module = host_aegis }},
+        }),
+    });
+    const regenerate = b.addRunArtifact(generator);
+    regenerate.has_side_effects = true;
+    regenerate.addDirectoryArg2(p.path("."), .{});
+    regenerate.addDirectoryArg2(upstream_cache, .{});
+    regenerate.addFileArg(.zig_exe);
+    regenerate.addPassthruArgs();
+    b.step("catalogue", "Regenerate the grammar catalogue: -- --nvim-treesitter COMMIT --helix COMMIT [--tree-sitter PATH] [--only a,b]").dependOn(&regenerate.step);
+
     tools.preflight.addCi(b, p, .{
         .tests = test_step,
         .bench = .{
@@ -235,12 +287,9 @@ fn isQueryOnly(name: []const u8) bool {
     return false;
 }
 
-fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names: []const []const u8, options: GrammarOptions) ?*std.Build.Module {
-    const target = options.target orelse ts.resolved_target.?;
-    const optimize = options.optimize orelse ts.optimize.?;
+/// The named grammars and their `requires`, in catalogue order.
+fn selectGrammars(b: *std.Build, names: []const []const u8) []const *const schema.Grammar {
     const gpa = b.allocator;
-
-    // The names, then their `requires`, kept in catalogue order.
     var wanted: std.array_hash_map.String(void) = .empty;
     var pending: std.ArrayList([]const u8) = .empty;
     for (names) |name| {
@@ -267,21 +316,29 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
     for (catalogue.grammars) |*g| {
         if (wanted.contains(g.name)) selected.append(gpa, g) catch @panic("OOM");
     }
+    return selected.items;
+}
+
+fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names: []const []const u8, options: GrammarOptions) ?*std.Build.Module {
+    const target = options.target orelse ts.resolved_target.?;
+    const optimize = options.optimize orelse ts.optimize.?;
+    const gpa = b.allocator;
+    const selected = selectGrammars(b, names);
 
     // Ask for every lazy dependency before using any, so that one configure
     // pass fetches all of them.
     var missing = false;
-    const deps = gpa.alloc(?*std.Build.Dependency, selected.items.len) catch @panic("OOM");
+    const deps = gpa.alloc(?*std.Build.Dependency, selected.len) catch @panic("OOM");
     var wants_helix = false;
-    for (selected.items, deps) |g, *dep| {
+    for (selected, deps) |g, *dep| {
         dep.* = owner.dependencyLazy(b.fmt("grammar_{s}", .{g.name}), .{}) catch null;
         if (dep.* == null) missing = true;
         for (g.queries.tags) |q| {
             if (q.source == .helix) wants_helix = true;
         }
     }
-    const nvim = if (selected.items.len != 0) owner.dependencyLazy("nvim_treesitter", .{}) catch null else null;
-    if (selected.items.len != 0 and nvim == null) missing = true;
+    const nvim = if (selected.len != 0) owner.dependencyLazy("nvim_treesitter", .{}) catch null else null;
+    if (selected.len != 0 and nvim == null) missing = true;
     const helix = if (wants_helix) owner.dependencyLazy("helix", .{}) catch null else null;
     if (wants_helix and helix == null) missing = true;
     if (missing) return null;
@@ -291,7 +348,7 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
     var libraries: std.ArrayList(*std.Build.Step.Compile) = .empty;
     appendFmt(b, &source, "//! Generated by ztreesitter's addGrammars.\nconst ts = @import(\"ztreesitter\");\n\n", .{});
 
-    for (selected.items, deps) |g, dep_opt| {
+    for (selected, deps) |g, dep_opt| {
         const dep = dep_opt.?;
         const src_dir = if (g.location.len == 0) "src" else b.fmt("{s}/src", .{g.location});
         const lib = b.addLibrary(.{
@@ -341,7 +398,7 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
     }
 
     appendFmt(b, &source, "pub const list = [_]*const ts.Grammar{{", .{});
-    for (selected.items) |g| appendFmt(b, &source, " &@\"{s}\",", .{g.name});
+    for (selected) |g| appendFmt(b, &source, " &@\"{s}\",", .{g.name});
     appendFmt(b, &source, " }};\n", .{});
 
     const grammars = b.createModule(.{

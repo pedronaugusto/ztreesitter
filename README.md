@@ -9,8 +9,8 @@ program names it.
 ## Usage
 
 The block below is a region of [`examples/usage.zig`](examples/usage.zig),
-which `zig build test` builds and runs. `ci/check-readme.sh` keeps the two the
-same.
+which `zig build test` builds and runs. preflight's docs check keeps the two
+the same; `zig build docs -- usage` prints the block.
 
 <!-- BEGIN GENERATED zig build docs -- usage -->
 ```zig
@@ -88,8 +88,9 @@ small.
 [docs/grammars.md](docs/grammars.md) lists every grammar with its ABI
 version, scanner, tags query, licence, and anything the catalogue tool had to
 say about it. It is generated, with `grammars/catalogue.zig` and the
-dependency block of `build.zig.zon`, by `tools/catalogue.py` from a pinned
-nvim-treesitter commit; [UPSTREAM.md](UPSTREAM.md) has the procedure.
+dependency block of `build.zig.zon`, by `zig build catalogue`
+(`tools/catalogue.zig`) from a pinned nvim-treesitter commit;
+[UPSTREAM.md](UPSTREAM.md) has the procedure.
 
 Each grammar is fetched from a mirror in this repository: the files its build
 and its queries read, at the grammar repository's own paths, published as an
@@ -194,8 +195,13 @@ fresh parses over 200 random edits, included ranges for HTML and nested
 Markdown injections, predicates in Neovim's dialect, tags in C, Swift and C#,
 a deadline that pauses and resumes a parse, and the allocator seam's balance.
 
-`zig build bench -Doptimize=ReleaseFast -- GRAMMAR FILE...` measures parse and
-parse-plus-tags throughput.
+`bench/throughput.zig` measures parse and parse-plus-tags throughput for each
+grammar built, through preflight's `bench` step.
+
+Two checks need the network and run on their own: `zig build check-vendor`
+compares `libs/tree-sitter` with the pinned upstream commit, and
+`zig build verify-mirror` compares each selected grammar's mirror with its
+repository at the catalogued commit (`-Dgrammars=all` for every one).
 
 While this repository is private, Zig cannot fetch the mirrors from GitHub;
 `ci/seed-mirrors.sh GRAMMAR...` puts them in the package cache from the local
@@ -203,8 +209,8 @@ refs.
 
 [CI](.github/workflows/ci.yml) runs the suite in Debug (with the runtime
 sanitized) and ReleaseSafe on Linux, macOS and Windows, and on Windows's MSVC
-ABI; source checks (formatting, casts, layers, README); compile-only targets;
-and the vendor check.
+ABI; source checks (formatting, glint's rules, layers, README); compile-only
+targets; and the vendor check.
 
 ## Licence
 
