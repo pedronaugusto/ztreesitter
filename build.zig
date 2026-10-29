@@ -93,6 +93,7 @@ pub fn dev(b: *std.Build, tools: type) void {
     const filters: []const []const u8 = if (test_filter) |f| &.{f} else &.{};
 
     const package = b.dependency("ztreesitter", .{ .target = target, .optimize = optimize, .sanitize_c = sanitize_c });
+    const host_aegis = b.dependency("aegis", .{ .target = b.graph.host }).module("aegis");
     const p = package.builder;
     const module = package.module("ztreesitter");
 
@@ -104,7 +105,8 @@ pub fn dev(b: *std.Build, tools: type) void {
         names.appendSlice(b.allocator, &representative) catch @panic("OOM");
     }
     // Null on the configure pass that fetches the named grammars.
-    const grammars_module = addGrammars(b, package, names.items, .{}) orelse emptyGrammars(b, module, target, optimize);
+    const built = buildGrammars(b, p, module, names.items, .{});
+    const grammars_module = if (built) |g| g.module else emptyGrammars(b, module, target, optimize);
 
     //=====================================================================
     // Tests. `unit` holds the tests beside the code; `tests` the ones that
@@ -169,6 +171,24 @@ pub fn dev(b: *std.Build, tools: type) void {
     examples.dependOn(&b.addRunArtifact(example).step);
     test_step.dependOn(examples);
 
+    // Every selected grammar compiled and linked for the host (the tests and
+    // the example link them all), and no global symbol defined by two of them: such
+    // grammars could not share a program. The nightly runs it with
+    // -Dgrammars=all.
+    const symbols = b.addRunArtifact(b.addExecutable(.{
+        .name = "symbols",
+        .root_module = b.createModule(.{
+            .root_source_file = p.path("tools/symbols.zig"),
+            .target = b.graph.host,
+            .imports = &.{.{ .name = "aegis", .module = host_aegis }},
+        }),
+    }));
+    if (built) |g| for (g.libraries) |lib| symbols.addArtifactArg2(lib, .{});
+    const check_grammars = b.step("check-grammars", "Compile and link every selected grammar and refuse a global symbol two of them define");
+    check_grammars.dependOn(&tests.step);
+    check_grammars.dependOn(&example.step);
+    check_grammars.dependOn(&symbols.step);
+
     //=====================================================================
     // Upstream, over the network: the vendored runtime and the selected
     // grammars' mirrors compared with what they copy, and the catalogue
@@ -176,7 +196,6 @@ pub fn dev(b: *std.Build, tools: type) void {
     //=====================================================================
 
     const upstream_cache: std.Build.LazyPath = .{ .relative = .{ .base = .local_cache, .sub_path = "ztreesitter-upstream" } };
-    const host_aegis = b.dependency("aegis", .{ .target = b.graph.host }).module("aegis");
     const upstream = b.addExecutable(.{
         .name = "upstream",
         .root_module = b.createModule(.{
@@ -274,7 +293,8 @@ pub const GrammarOptions = struct {
 /// grammars are the application's choice, and every library in it shares
 /// one ztreesitter.
 pub fn addGrammars(b: *std.Build, ztreesitter: *std.Build.Dependency, names: []const []const u8, options: GrammarOptions) ?*std.Build.Module {
-    return addGrammarsTo(b, ztreesitter.builder, ztreesitter.module("ztreesitter"), names, options);
+    const built = buildGrammars(b, ztreesitter.builder, ztreesitter.module("ztreesitter"), names, options) orelse return null;
+    return built.module;
 }
 
 fn find(name: []const u8) ?*const schema.Grammar {
@@ -319,7 +339,13 @@ fn selectGrammars(b: *std.Build, names: []const []const u8) []const *const schem
     return selected.items;
 }
 
-fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names: []const []const u8, options: GrammarOptions) ?*std.Build.Module {
+const Built = struct {
+    module: *std.Build.Module,
+    /// One per grammar when linked statically; none when dynamic.
+    libraries: []const *std.Build.Step.Compile,
+};
+
+fn buildGrammars(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names: []const []const u8, options: GrammarOptions) ?Built {
     const target = options.target orelse ts.resolved_target.?;
     const optimize = options.optimize orelse ts.optimize.?;
     const gpa = b.allocator;
@@ -408,7 +434,7 @@ fn addGrammarsTo(b: *std.Build, owner: *std.Build, ts: *std.Build.Module, names:
         .imports = &.{.{ .name = "ztreesitter", .module = ts }},
     });
     for (libraries.items) |lib| grammars.linkLibrary(lib);
-    return grammars;
+    return .{ .module = grammars, .libraries = libraries.items };
 }
 
 fn appendFmt(b: *std.Build, list: *std.ArrayList(u8), comptime fmt: []const u8, args: anytype) void {

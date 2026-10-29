@@ -207,10 +207,13 @@ While this repository is private, Zig cannot fetch the mirrors from GitHub;
 `ci/seed-mirrors.sh GRAMMAR...` puts them in the package cache from the local
 refs.
 
-[CI](.github/workflows/ci.yml) runs the suite in Debug (with the runtime
-sanitized) and ReleaseSafe on Linux, macOS and Windows, and on Windows's MSVC
-ABI; source checks (formatting, glint's rules, layers, README); compile-only
-targets; and the vendor check.
+[CI](.github/workflows/ci.yml) is preflight's gate, generated from
+`ci/workflow.json` by `bay generate`: the source checks (formatting, glint's
+rules, layers, this README's usage block), the suite on Linux, macOS and
+Windows, compile-only targets, and the suite with the runtime sanitized. The
+nightly adds the full matrix, the vendor check, and every grammar of the
+catalogue compiled and linked with no global symbol defined twice
+(`zig build check-grammars -Dgrammars=all`).
 
 ## Licence
 

@@ -12,5 +12,41 @@
     "x86_64-freebsd"
   ],
   "compile_once": true,
-  "hardened": true
+  "hardened": true,
+  "jobs": [
+    {
+      "name": "sanitized runtime",
+      "step": "test",
+      "args": [
+        "-Dsanitize_c=true"
+      ],
+      "tiers": [
+        "merge",
+        "release"
+      ],
+      "setup": false,
+      "timeout": 30
+    },
+    {
+      "name": "vendor",
+      "step": "check-vendor",
+      "tiers": [
+        "release"
+      ],
+      "setup": false,
+      "timeout": 15
+    },
+    {
+      "name": "all grammars",
+      "step": "check-grammars",
+      "args": [
+        "-Dgrammars=all"
+      ],
+      "tiers": [
+        "release"
+      ],
+      "setup": false,
+      "timeout": 180
+    }
+  ]
 }
