@@ -200,7 +200,7 @@ pub const Match = struct {
     captures: []const Capture,
 
     fn fromC(m: c.QueryMatch) Match {
-        const caps: []const Capture = if (m.captures) |p| @as([*]const Capture, @ptrCast(p))[0..m.capture_count] else &.{}; // aegis: no-danger: Capture has c.QueryCapture's layout, asserted in predicates.zig
+        const caps: []const Capture = if (m.captures) |p| @as([*]const Capture, @ptrCast(p))[0..m.capture_count] else &.{}; // Capture has c.QueryCapture's layout, asserted in predicates.zig
         return .{ .id = m.id, .pattern = m.pattern_index, .captures = caps };
     }
 
@@ -388,7 +388,7 @@ const Progress = struct {
     stopped: ?IterateError = null,
 
     fn check(state: *c.QueryCursorState) callconv(.c) bool {
-        const self: *Progress = @ptrCast(@alignCast(state.payload.?)); // aegis: boundary: the runtime hands back the payload it was given: the cursor's own Progress
+        const self: *Progress = @ptrCast(@alignCast(state.payload.?)); // the runtime hands back the payload it was given: the cursor's own Progress
         const io = self.io orelse return false;
         io.checkCancel() catch {
             self.stopped = error.Canceled;

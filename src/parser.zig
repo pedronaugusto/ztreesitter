@@ -43,7 +43,7 @@ pub const Parser = struct {
     /// Parse only these ranges of the text, in order and not overlapping;
     /// empty means the whole text. Nodes keep absolute positions.
     pub fn setIncludedRanges(p: *Parser, ranges: []const types.Range) RangesError!void {
-        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else @ptrCast(ranges.ptr); // aegis: no-danger: Range has c.Range's layout, asserted in types.zig
+        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else @ptrCast(ranges.ptr); // Range has c.Range's layout, asserted in types.zig
         if (!c.ts_parser_set_included_ranges(p.raw, ptr, @intCast(ranges.len))) return error.OverlappingRanges;
     }
 
@@ -51,7 +51,7 @@ pub const Parser = struct {
     pub fn includedRanges(p: *const Parser) []const types.Range {
         var n: u32 = 0;
         const ptr = c.ts_parser_included_ranges(p.raw, &n);
-        return @as([*]const types.Range, @ptrCast(ptr))[0..n]; // aegis: no-danger: Range has c.Range's layout, asserted in types.zig
+        return @as([*]const types.Range, @ptrCast(ptr))[0..n]; // Range has c.Range's layout, asserted in types.zig
     }
 
     /// Forget a paused or cancelled parse, so the next call starts afresh.
@@ -102,7 +102,7 @@ const Progress = struct {
     stopped: ?Parser.ParseError = null,
 
     fn check(state: *c.ParseState) callconv(.c) bool {
-        const self: *Progress = @ptrCast(@alignCast(state.payload.?)); // aegis: boundary: the runtime hands back the payload it was given: the Progress `parse` installed
+        const self: *Progress = @ptrCast(@alignCast(state.payload.?)); // the runtime hands back the payload it was given: the Progress `parse` installed
         self.io.checkCancel() catch {
             self.stopped = error.Canceled;
             return true;
@@ -121,7 +121,7 @@ const Source = struct {
     input: types.Input,
 
     fn read(payload: ?*anyopaque, byte: u32, position: c.Point, bytes_read: *u32) callconv(.c) ?[*]const u8 {
-        const self: *Source = @ptrCast(@alignCast(payload.?)); // aegis: boundary: the runtime hands back the payload it was given: the Source `parse` installed
+        const self: *Source = @ptrCast(@alignCast(payload.?)); // the runtime hands back the payload it was given: the Source `parse` installed
         const chunk: []const u8 = switch (self.input) {
             .slice => |s| if (byte < s.len) s[byte..] else "",
             .reader => |r| r.read(r, byte, .{ .row = position.row, .column = position.column }),
