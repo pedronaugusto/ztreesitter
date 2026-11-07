@@ -38,7 +38,7 @@ pub const Tree = struct {
     /// Adjust the tree for an edit to its text, before re-parsing with it as
     /// the old tree. Nodes taken from it before the edit are invalid after.
     pub fn edit(t: *Tree, e: types.InputEdit) void {
-        c.ts_tree_edit(t.raw, @ptrCast(&e)); // aegis: no-danger: InputEdit has c.InputEdit's layout, asserted in types.zig
+        c.ts_tree_edit(t.raw, @ptrCast(&e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
     }
 
     /// The ranges the tree was parsed over. Free with `RangeList.deinit`.
@@ -64,7 +64,7 @@ pub const RangeList = struct {
     raw: ?[*]c.Range,
 
     fn init(p: ?[*]c.Range, n: u32) RangeList {
-        const items: []const types.Range = if (p) |q| @as([*]const types.Range, @ptrCast(q))[0..n] else &.{}; // aegis: no-danger: Range has c.Range's layout, asserted in types.zig
+        const items: []const types.Range = if (p) |q| @as([*]const types.Range, @ptrCast(q))[0..n] else &.{}; // Range has c.Range's layout, asserted in types.zig
         return .{ .items = items, .raw = p };
     }
 
