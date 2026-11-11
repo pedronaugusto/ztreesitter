@@ -91,6 +91,12 @@ catalogue records them and the build renames each to
 `tree_sitter_<name>__<global>`, so grammars link beside each other and
 beside the program.
 
+## Stability
+
+ztreesitter is 0.x and tracks Zig 0.17.x. A breaking change comes only in a minor release
+(0.1 to 0.2), with a CHANGELOG entry saying what changed and what to write instead; a
+patch release never breaks.
+
 ## Grammars
 
 [docs/grammars.md](docs/grammars.md) lists every grammar with its ABI

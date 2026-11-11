@@ -6,6 +6,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+- State the stability policy in the README: 0.x, tracking Zig 0.17.x; a breaking change only in a minor release, with its CHANGELOG entry; a patch release never breaks.
 - Vendor the tree-sitter 0.27.1 runtime and build it with `zig build`.
 - Fix tree-sitter's query parser: a field before a predicate is a syntax error, where upstream wrote one step past the query's steps (`libs/tree-sitter.patch`, UPSTREAM.md).
 - Bind every function and type of `api.h` the build compiles, checked against the header by reflection in both directions.
