@@ -271,7 +271,9 @@ pub fn dev(b: *std.Build, tools: type) void {
             .root_source_file = p.path("tools/catalogue.zig"),
             .target = b.graph.host,
             .optimize = optimize,
-            .imports = &.{.{ .name = "aegis", .module = host_aegis }},
+            // aegis in the tests' own target and mode: the hardened run's quarantine is shakedown
+            // declared with them, and its aegis is then this one module, never a second copy.
+            .imports = &.{.{ .name = "aegis", .module = b.dependency("aegis", .{ .target = b.graph.host, .optimize = optimize }).module("aegis") }},
         }),
     });
     test_step.dependOn(&b.addRunArtifact(catalogue_tests).step);
