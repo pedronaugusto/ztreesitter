@@ -190,7 +190,7 @@ pub const Node = extern struct {
 
     /// Adjust a node held across an edit, as `Tree.edit` adjusts the tree.
     pub fn edit(n: *Node, e: *const types.InputEdit) void {
-        c.ts_node_edit(&n.raw, @ptrCast(e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
+        c.ts_node_edit(&n.raw, c.as(*const c.InputEdit, e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
     }
 
     pub fn eql(a: Node, b: Node) bool {

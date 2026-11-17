@@ -36,6 +36,14 @@ Patched: `libs/tree-sitter.patch`, against `v0.27.1`
   `ad067fddf76a32c3071f8f3a31e8719d348e2737`. Test: "a field before a
   predicate is a syntax error at the field" in `tests/tests.zig`.
 
+Not patched, but replaced at the build: every `strncmp` in `lib/src/lib.c` is
+`src/strncmp.c`'s (`-Dstrncmp=ztreesitter_strncmp`). Zig 0.17's own `strncmp`,
+which every musl target links, reads byte n of both strings (byte 0 at n = 0);
+the runtime compares strings a length bounds and no NUL ends (`language.c`,
+`ts_language_symbol_for_name` and `ts_language_field_id_for_name`; `query.c`,
+`symbol_table_id_for_name`), so that byte can lie past the caller's memory. The
+replacement goes when the pinned Zig's `strncmp` stops at n.
+
 Known upstream behaviour, recorded rather than patched: `lib/src/query.c`
 (`symbol_table_insert_name`, line 960) copies a query's empty string literal
 with `memcpy(dst, NULL, 0)`. That is undefined behaviour in C before C2y and

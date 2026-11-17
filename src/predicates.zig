@@ -90,7 +90,7 @@ pub fn compilePattern(
 ) CompileError!Pattern {
     var count: u32 = 0;
     const steps_ptr = c.ts_query_predicates_for_pattern(query, pattern_index, &count);
-    const steps: []const c.QueryPredicateStep = if (steps_ptr) |p| p[0..count] else &.{};
+    const steps = c.slice(c.QueryPredicateStep, steps_ptr, count);
 
     var filters: std.ArrayList(Filter) = .empty;
     var properties: std.ArrayList(Property) = .empty;
@@ -182,7 +182,7 @@ fn deinitFilter(gpa: std.mem.Allocator, f: *Filter) void {
 fn string(query: *const c.Query, id: u32) []const u8 {
     var len: u32 = 0;
     const p = c.ts_query_string_value_for_id(query, id, &len);
-    return p[0..len];
+    return c.slice(u8, p, len);
 }
 
 fn property(args: []const Arg) CompileError!Property {

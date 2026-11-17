@@ -275,6 +275,13 @@ pub const Tags = struct {
 };
 
 /// `r`'s text from `input`, as UTF-8.
+/// U+FFFD's UTF-8 in `out`, and its length.
+fn replacement(out: *[4]u8) u3 {
+    const bytes = "\u{FFFD}";
+    @memcpy(out[0..bytes.len], bytes);
+    return bytes.len;
+}
+
 fn readUtf8(gpa: std.mem.Allocator, input: types.Input, r: Range, out: *std.ArrayList(u8)) error{OutOfMemory}!void {
     const raw = try gpa.alloc(u8, r.end_byte - r.start_byte);
     defer gpa.free(raw);
@@ -295,7 +302,10 @@ fn readUtf8(gpa: std.mem.Allocator, input: types.Input, r: Range, out: *std.Arra
             }
         }
         var utf8: [4]u8 = undefined;
-        const n = std.unicode.utf8Encode(cp, &utf8) catch std.unicode.utf8Encode(std.unicode.replacement_character, &utf8) catch unreachable; // unreachable: U+FFFD encodes
+        const n = std.unicode.utf8Encode(cp, &utf8) catch |err| switch (err) {
+            // A lone surrogate reads as U+FFFD; no code unit pair exceeds U+10FFFF.
+            error.Utf8CannotEncodeSurrogateHalf, error.CodepointTooLarge => replacement(&utf8),
+        };
         try out.appendSlice(gpa, utf8[0..n]);
     }
 }

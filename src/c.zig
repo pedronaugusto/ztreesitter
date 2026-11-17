@@ -7,6 +7,21 @@
 //! non-optional pointers; results that can be NULL are optional.
 
 pub const language_version = 15;
+
+/// A pointer the runtime returns and the length it returns with it, as one slice; a
+/// null pointer is the empty slice. The package's files read the runtime's arrays
+/// through it, so the unchecked slice is written here, at the seam, once.
+pub fn slice(comptime T: type, ptr: ?[*]const T, len: usize) []const T {
+    const p = ptr orelse return &.{};
+    return p[0..len];
+}
+
+/// `ptr` as `P`, a pointer to a type the package declares with the runtime's layout
+/// (`types.Range` and `c.Range`, `types.InputEdit` and `c.InputEdit`, a query capture),
+/// each layout asserted equal where the package's type is declared.
+pub fn as(comptime P: type, ptr: anytype) P {
+    return @ptrCast(ptr);
+}
 pub const min_compatible_language_version = 13;
 
 pub const StateId = u16;
@@ -157,174 +172,174 @@ pub const LanguageMetadata = extern struct {
 
 // Parser
 
-pub extern fn ts_parser_new() ?*Parser; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_delete(self: *Parser) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_language(self: *const Parser) ?*const Language; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_set_language(self: *Parser, language: ?*const Language) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_set_included_ranges(self: *Parser, ranges: ?[*]const Range, count: u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_included_ranges(self: *const Parser, count: *u32) [*]const Range; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_parse(self: *Parser, old_tree: ?*const Tree, input: Input) ?*Tree; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_parse_with_options(self: *Parser, old_tree: ?*const Tree, input: Input, parse_options: ParseOptions) ?*Tree; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_parse_string(self: *Parser, old_tree: ?*const Tree, string: [*]const u8, length: u32) ?*Tree; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_parse_string_encoding(self: *Parser, old_tree: ?*const Tree, string: [*]const u8, length: u32, encoding: InputEncoding) ?*Tree; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_reset(self: *Parser) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_set_logger(self: *Parser, logger: Logger) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_logger(self: *const Parser) Logger; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_parser_print_dot_graphs(self: *Parser, fd: c_int) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_parser_new() ?*Parser;
+pub extern fn ts_parser_delete(self: *Parser) void;
+pub extern fn ts_parser_language(self: *const Parser) ?*const Language;
+pub extern fn ts_parser_set_language(self: *Parser, language: ?*const Language) bool;
+pub extern fn ts_parser_set_included_ranges(self: *Parser, ranges: ?[*]const Range, count: u32) bool;
+pub extern fn ts_parser_included_ranges(self: *const Parser, count: *u32) [*]const Range;
+pub extern fn ts_parser_parse(self: *Parser, old_tree: ?*const Tree, input: Input) ?*Tree;
+pub extern fn ts_parser_parse_with_options(self: *Parser, old_tree: ?*const Tree, input: Input, parse_options: ParseOptions) ?*Tree;
+pub extern fn ts_parser_parse_string(self: *Parser, old_tree: ?*const Tree, string: [*]const u8, length: u32) ?*Tree;
+pub extern fn ts_parser_parse_string_encoding(self: *Parser, old_tree: ?*const Tree, string: [*]const u8, length: u32, encoding: InputEncoding) ?*Tree;
+pub extern fn ts_parser_reset(self: *Parser) void;
+pub extern fn ts_parser_set_logger(self: *Parser, logger: Logger) void;
+pub extern fn ts_parser_logger(self: *const Parser) Logger;
+pub extern fn ts_parser_print_dot_graphs(self: *Parser, fd: c_int) void;
 
 // Tree
 
-pub extern fn ts_tree_copy(self: *const Tree) *Tree; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_delete(self: *Tree) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_root_node(self: *const Tree) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_root_node_with_offset(self: *const Tree, offset_bytes: u32, offset_extent: Point) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_language(self: *const Tree) *const Language; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_included_ranges(self: *const Tree, length: *u32) ?[*]Range; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_edit(self: *Tree, edit: *const InputEdit) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_get_changed_ranges(old_tree: *const Tree, new_tree: *const Tree, length: *u32) ?[*]Range; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_print_dot_graph(self: *const Tree, file_descriptor: c_int) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_tree_copy(self: *const Tree) *Tree;
+pub extern fn ts_tree_delete(self: *Tree) void;
+pub extern fn ts_tree_root_node(self: *const Tree) Node;
+pub extern fn ts_tree_root_node_with_offset(self: *const Tree, offset_bytes: u32, offset_extent: Point) Node;
+pub extern fn ts_tree_language(self: *const Tree) *const Language;
+pub extern fn ts_tree_included_ranges(self: *const Tree, length: *u32) ?[*]Range;
+pub extern fn ts_tree_edit(self: *Tree, edit: *const InputEdit) void;
+pub extern fn ts_tree_get_changed_ranges(old_tree: *const Tree, new_tree: *const Tree, length: *u32) ?[*]Range;
+pub extern fn ts_tree_print_dot_graph(self: *const Tree, file_descriptor: c_int) void;
 
 // Node
 
-pub extern fn ts_node_type(self: Node) [*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_symbol(self: Node) Symbol; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_language(self: Node) *const Language; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_grammar_type(self: Node) [*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_grammar_symbol(self: Node) Symbol; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_start_byte(self: Node) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_start_point(self: Node) Point; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_end_byte(self: Node) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_end_point(self: Node) Point; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_string(self: Node) ?[*:0]u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_is_null(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_is_named(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_is_missing(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_is_extra(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_has_changes(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_has_error(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_is_error(self: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_parse_state(self: Node) StateId; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_next_parse_state(self: Node) StateId; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_parent(self: Node) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_child_with_descendant(self: Node, descendant: Node) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_child(self: Node, child_index: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_field_name_for_child(self: Node, child_index: u32) ?[*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_field_name_for_named_child(self: Node, named_child_index: u32) ?[*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_child_count(self: Node) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_named_child(self: Node, child_index: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_named_child_count(self: Node) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_child_by_field_name(self: Node, name: [*]const u8, name_length: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_child_by_field_id(self: Node, field_id: FieldId) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_next_sibling(self: Node) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_prev_sibling(self: Node) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_next_named_sibling(self: Node) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_prev_named_sibling(self: Node) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_first_child_for_byte(self: Node, byte: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_first_named_child_for_byte(self: Node, byte: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_descendant_count(self: Node) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_descendant_for_byte_range(self: Node, start: u32, end: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_descendant_for_point_range(self: Node, start: Point, end: Point) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_named_descendant_for_byte_range(self: Node, start: u32, end: u32) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_named_descendant_for_point_range(self: Node, start: Point, end: Point) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_edit(self: *Node, edit: *const InputEdit) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_node_eq(self: Node, other: Node) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_point_edit(point: *Point, point_byte: *u32, edit: *const InputEdit) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_range_edit(range: *Range, edit: *const InputEdit) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_node_type(self: Node) [*:0]const u8;
+pub extern fn ts_node_symbol(self: Node) Symbol;
+pub extern fn ts_node_language(self: Node) *const Language;
+pub extern fn ts_node_grammar_type(self: Node) [*:0]const u8;
+pub extern fn ts_node_grammar_symbol(self: Node) Symbol;
+pub extern fn ts_node_start_byte(self: Node) u32;
+pub extern fn ts_node_start_point(self: Node) Point;
+pub extern fn ts_node_end_byte(self: Node) u32;
+pub extern fn ts_node_end_point(self: Node) Point;
+pub extern fn ts_node_string(self: Node) ?[*:0]u8;
+pub extern fn ts_node_is_null(self: Node) bool;
+pub extern fn ts_node_is_named(self: Node) bool;
+pub extern fn ts_node_is_missing(self: Node) bool;
+pub extern fn ts_node_is_extra(self: Node) bool;
+pub extern fn ts_node_has_changes(self: Node) bool;
+pub extern fn ts_node_has_error(self: Node) bool;
+pub extern fn ts_node_is_error(self: Node) bool;
+pub extern fn ts_node_parse_state(self: Node) StateId;
+pub extern fn ts_node_next_parse_state(self: Node) StateId;
+pub extern fn ts_node_parent(self: Node) Node;
+pub extern fn ts_node_child_with_descendant(self: Node, descendant: Node) Node;
+pub extern fn ts_node_child(self: Node, child_index: u32) Node;
+pub extern fn ts_node_field_name_for_child(self: Node, child_index: u32) ?[*:0]const u8;
+pub extern fn ts_node_field_name_for_named_child(self: Node, named_child_index: u32) ?[*:0]const u8;
+pub extern fn ts_node_child_count(self: Node) u32;
+pub extern fn ts_node_named_child(self: Node, child_index: u32) Node;
+pub extern fn ts_node_named_child_count(self: Node) u32;
+pub extern fn ts_node_child_by_field_name(self: Node, name: [*]const u8, name_length: u32) Node;
+pub extern fn ts_node_child_by_field_id(self: Node, field_id: FieldId) Node;
+pub extern fn ts_node_next_sibling(self: Node) Node;
+pub extern fn ts_node_prev_sibling(self: Node) Node;
+pub extern fn ts_node_next_named_sibling(self: Node) Node;
+pub extern fn ts_node_prev_named_sibling(self: Node) Node;
+pub extern fn ts_node_first_child_for_byte(self: Node, byte: u32) Node;
+pub extern fn ts_node_first_named_child_for_byte(self: Node, byte: u32) Node;
+pub extern fn ts_node_descendant_count(self: Node) u32;
+pub extern fn ts_node_descendant_for_byte_range(self: Node, start: u32, end: u32) Node;
+pub extern fn ts_node_descendant_for_point_range(self: Node, start: Point, end: Point) Node;
+pub extern fn ts_node_named_descendant_for_byte_range(self: Node, start: u32, end: u32) Node;
+pub extern fn ts_node_named_descendant_for_point_range(self: Node, start: Point, end: Point) Node;
+pub extern fn ts_node_edit(self: *Node, edit: *const InputEdit) void;
+pub extern fn ts_node_eq(self: Node, other: Node) bool;
+pub extern fn ts_point_edit(point: *Point, point_byte: *u32, edit: *const InputEdit) void;
+pub extern fn ts_range_edit(range: *Range, edit: *const InputEdit) void;
 
 // Tree cursor
 
-pub extern fn ts_tree_cursor_new(node: Node) TreeCursor; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_delete(self: *TreeCursor) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_reset(self: *TreeCursor, node: Node) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_reset_to(dst: *TreeCursor, src: *const TreeCursor) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_current_node(self: *const TreeCursor) Node; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_current_field_name(self: *const TreeCursor) ?[*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_current_field_id(self: *const TreeCursor) FieldId; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_parent(self: *TreeCursor) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_next_sibling(self: *TreeCursor) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_previous_sibling(self: *TreeCursor) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_first_child(self: *TreeCursor) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_last_child(self: *TreeCursor) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_descendant(self: *TreeCursor, goal_descendant_index: u32) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_current_descendant_index(self: *const TreeCursor) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_current_depth(self: *const TreeCursor) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_first_child_for_byte(self: *TreeCursor, goal_byte: u32) i64; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_goto_first_child_for_point(self: *TreeCursor, goal_point: Point) i64; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_tree_cursor_copy(cursor: *const TreeCursor) TreeCursor; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_tree_cursor_new(node: Node) TreeCursor;
+pub extern fn ts_tree_cursor_delete(self: *TreeCursor) void;
+pub extern fn ts_tree_cursor_reset(self: *TreeCursor, node: Node) void;
+pub extern fn ts_tree_cursor_reset_to(dst: *TreeCursor, src: *const TreeCursor) void;
+pub extern fn ts_tree_cursor_current_node(self: *const TreeCursor) Node;
+pub extern fn ts_tree_cursor_current_field_name(self: *const TreeCursor) ?[*:0]const u8;
+pub extern fn ts_tree_cursor_current_field_id(self: *const TreeCursor) FieldId;
+pub extern fn ts_tree_cursor_goto_parent(self: *TreeCursor) bool;
+pub extern fn ts_tree_cursor_goto_next_sibling(self: *TreeCursor) bool;
+pub extern fn ts_tree_cursor_goto_previous_sibling(self: *TreeCursor) bool;
+pub extern fn ts_tree_cursor_goto_first_child(self: *TreeCursor) bool;
+pub extern fn ts_tree_cursor_goto_last_child(self: *TreeCursor) bool;
+pub extern fn ts_tree_cursor_goto_descendant(self: *TreeCursor, goal_descendant_index: u32) void;
+pub extern fn ts_tree_cursor_current_descendant_index(self: *const TreeCursor) u32;
+pub extern fn ts_tree_cursor_current_depth(self: *const TreeCursor) u32;
+pub extern fn ts_tree_cursor_goto_first_child_for_byte(self: *TreeCursor, goal_byte: u32) i64;
+pub extern fn ts_tree_cursor_goto_first_child_for_point(self: *TreeCursor, goal_point: Point) i64;
+pub extern fn ts_tree_cursor_copy(cursor: *const TreeCursor) TreeCursor;
 
 // Query
 
-pub extern fn ts_query_new(language: *const Language, source: [*]const u8, source_len: u32, error_offset: *u32, error_type: *QueryError) ?*Query; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_delete(self: *Query) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_copy(self: *const Query) ?*Query; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_pattern_count(self: *const Query) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_capture_count(self: *const Query) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_string_count(self: *const Query) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_start_byte_for_pattern(self: *const Query, pattern_index: u32) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_end_byte_for_pattern(self: *const Query, pattern_index: u32) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_predicates_for_pattern(self: *const Query, pattern_index: u32, step_count: *u32) ?[*]const QueryPredicateStep; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_is_pattern_rooted(self: *const Query, pattern_index: u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_is_pattern_non_local(self: *const Query, pattern_index: u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_is_pattern_guaranteed_at_step(self: *const Query, byte_offset: u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_capture_name_for_id(self: *const Query, index: u32, length: *u32) [*]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_capture_quantifier_for_id(self: *const Query, pattern_index: u32, capture_index: u32) Quantifier; // aegis: boundary(A016, A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_string_value_for_id(self: *const Query, index: u32, length: *u32) [*]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_disable_capture(self: *Query, name: [*]const u8, length: u32) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_disable_pattern(self: *Query, pattern_index: u32) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_query_new(language: *const Language, source: [*]const u8, source_len: u32, error_offset: *u32, error_type: *QueryError) ?*Query;
+pub extern fn ts_query_delete(self: *Query) void;
+pub extern fn ts_query_copy(self: *const Query) ?*Query;
+pub extern fn ts_query_pattern_count(self: *const Query) u32;
+pub extern fn ts_query_capture_count(self: *const Query) u32;
+pub extern fn ts_query_string_count(self: *const Query) u32;
+pub extern fn ts_query_start_byte_for_pattern(self: *const Query, pattern_index: u32) u32;
+pub extern fn ts_query_end_byte_for_pattern(self: *const Query, pattern_index: u32) u32;
+pub extern fn ts_query_predicates_for_pattern(self: *const Query, pattern_index: u32, step_count: *u32) ?[*]const QueryPredicateStep;
+pub extern fn ts_query_is_pattern_rooted(self: *const Query, pattern_index: u32) bool;
+pub extern fn ts_query_is_pattern_non_local(self: *const Query, pattern_index: u32) bool;
+pub extern fn ts_query_is_pattern_guaranteed_at_step(self: *const Query, byte_offset: u32) bool;
+pub extern fn ts_query_capture_name_for_id(self: *const Query, index: u32, length: *u32) [*]const u8;
+pub extern fn ts_query_capture_quantifier_for_id(self: *const Query, pattern_index: u32, capture_index: u32) Quantifier;
+pub extern fn ts_query_string_value_for_id(self: *const Query, index: u32, length: *u32) [*]const u8;
+pub extern fn ts_query_disable_capture(self: *Query, name: [*]const u8, length: u32) void;
+pub extern fn ts_query_disable_pattern(self: *Query, pattern_index: u32) void;
 
 // Query cursor
 
-pub extern fn ts_query_cursor_new() ?*QueryCursor; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_delete(self: *QueryCursor) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_exec(self: *QueryCursor, query: *const Query, node: Node) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_exec_with_options(self: *QueryCursor, query: *const Query, node: Node, query_options: ?*const QueryCursorOptions) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_did_exceed_match_limit(self: *const QueryCursor) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_match_limit(self: *const QueryCursor) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_set_match_limit(self: *QueryCursor, limit: u32) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_set_byte_range(self: *QueryCursor, start_byte: u32, end_byte: u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_set_point_range(self: *QueryCursor, start_point: Point, end_point: Point) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_set_containing_byte_range(self: *QueryCursor, start_byte: u32, end_byte: u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_set_containing_point_range(self: *QueryCursor, start_point: Point, end_point: Point) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_next_match(self: *QueryCursor, match: *QueryMatch) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_remove_match(self: *QueryCursor, match_id: u32) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_next_capture(self: *QueryCursor, match: *QueryMatch, capture_index: *u32) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_query_cursor_set_max_start_depth(self: *QueryCursor, max_start_depth: u32) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_query_cursor_new() ?*QueryCursor;
+pub extern fn ts_query_cursor_delete(self: *QueryCursor) void;
+pub extern fn ts_query_cursor_exec(self: *QueryCursor, query: *const Query, node: Node) void;
+pub extern fn ts_query_cursor_exec_with_options(self: *QueryCursor, query: *const Query, node: Node, query_options: ?*const QueryCursorOptions) void;
+pub extern fn ts_query_cursor_did_exceed_match_limit(self: *const QueryCursor) bool;
+pub extern fn ts_query_cursor_match_limit(self: *const QueryCursor) u32;
+pub extern fn ts_query_cursor_set_match_limit(self: *QueryCursor, limit: u32) void;
+pub extern fn ts_query_cursor_set_byte_range(self: *QueryCursor, start_byte: u32, end_byte: u32) bool;
+pub extern fn ts_query_cursor_set_point_range(self: *QueryCursor, start_point: Point, end_point: Point) bool;
+pub extern fn ts_query_cursor_set_containing_byte_range(self: *QueryCursor, start_byte: u32, end_byte: u32) bool;
+pub extern fn ts_query_cursor_set_containing_point_range(self: *QueryCursor, start_point: Point, end_point: Point) bool;
+pub extern fn ts_query_cursor_next_match(self: *QueryCursor, match: *QueryMatch) bool;
+pub extern fn ts_query_cursor_remove_match(self: *QueryCursor, match_id: u32) void;
+pub extern fn ts_query_cursor_next_capture(self: *QueryCursor, match: *QueryMatch, capture_index: *u32) bool;
+pub extern fn ts_query_cursor_set_max_start_depth(self: *QueryCursor, max_start_depth: u32) void;
 
 // Language
 
-pub extern fn ts_language_copy(self: *const Language) *const Language; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_delete(self: *const Language) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_is_parseable(self: *const Language) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_symbol_count(self: *const Language) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_state_count(self: *const Language) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_symbol_for_name(self: *const Language, string: [*]const u8, length: u32, is_named: bool) Symbol; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_field_count(self: *const Language) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_field_name_for_id(self: *const Language, id: FieldId) ?[*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_field_id_for_name(self: *const Language, name: [*]const u8, name_length: u32) FieldId; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_supertypes(self: *const Language, length: *u32) ?[*]const Symbol; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_subtypes(self: *const Language, supertype: Symbol, length: *u32) ?[*]const Symbol; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_symbol_name(self: *const Language, symbol: Symbol) ?[*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_symbol_type(self: *const Language, symbol: Symbol) SymbolType; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_abi_version(self: *const Language) u32; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_metadata(self: *const Language) ?*const LanguageMetadata; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_next_state(self: *const Language, state: StateId, symbol: Symbol) StateId; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_name(self: *const Language) ?[*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_language_copy(self: *const Language) *const Language;
+pub extern fn ts_language_delete(self: *const Language) void;
+pub extern fn ts_language_is_parseable(self: *const Language) bool;
+pub extern fn ts_language_symbol_count(self: *const Language) u32;
+pub extern fn ts_language_state_count(self: *const Language) u32;
+pub extern fn ts_language_symbol_for_name(self: *const Language, string: [*]const u8, length: u32, is_named: bool) Symbol;
+pub extern fn ts_language_field_count(self: *const Language) u32;
+pub extern fn ts_language_field_name_for_id(self: *const Language, id: FieldId) ?[*:0]const u8;
+pub extern fn ts_language_field_id_for_name(self: *const Language, name: [*]const u8, name_length: u32) FieldId;
+pub extern fn ts_language_supertypes(self: *const Language, length: *u32) ?[*]const Symbol;
+pub extern fn ts_language_subtypes(self: *const Language, supertype: Symbol, length: *u32) ?[*]const Symbol;
+pub extern fn ts_language_symbol_name(self: *const Language, symbol: Symbol) ?[*:0]const u8;
+pub extern fn ts_language_symbol_type(self: *const Language, symbol: Symbol) SymbolType;
+pub extern fn ts_language_abi_version(self: *const Language) u32;
+pub extern fn ts_language_metadata(self: *const Language) ?*const LanguageMetadata;
+pub extern fn ts_language_next_state(self: *const Language, state: StateId, symbol: Symbol) StateId;
+pub extern fn ts_language_name(self: *const Language) ?[*:0]const u8;
 
 // Lookahead iterator
 
-pub extern fn ts_lookahead_iterator_new(self: *const Language, state: StateId) ?*LookaheadIterator; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_delete(self: *LookaheadIterator) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_reset_state(self: *LookaheadIterator, state: StateId) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_reset(self: *LookaheadIterator, language: *const Language, state: StateId) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_language(self: *const LookaheadIterator) *const Language; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_next(self: *LookaheadIterator) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_current_symbol(self: *const LookaheadIterator) Symbol; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_lookahead_iterator_current_symbol_name(self: *const LookaheadIterator) [*:0]const u8; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_lookahead_iterator_new(self: *const Language, state: StateId) ?*LookaheadIterator;
+pub extern fn ts_lookahead_iterator_delete(self: *LookaheadIterator) void;
+pub extern fn ts_lookahead_iterator_reset_state(self: *LookaheadIterator, state: StateId) bool;
+pub extern fn ts_lookahead_iterator_reset(self: *LookaheadIterator, language: *const Language, state: StateId) bool;
+pub extern fn ts_lookahead_iterator_language(self: *const LookaheadIterator) *const Language;
+pub extern fn ts_lookahead_iterator_next(self: *LookaheadIterator) bool;
+pub extern fn ts_lookahead_iterator_current_symbol(self: *const LookaheadIterator) Symbol;
+pub extern fn ts_lookahead_iterator_current_symbol_name(self: *const LookaheadIterator) [*:0]const u8;
 
 // WebAssembly: only the two entry points this build compiles without it.
 
-pub extern fn ts_wasm_store_delete(store: ?*WasmStore) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
-pub extern fn ts_language_is_wasm(language: *const Language) bool; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_wasm_store_delete(store: ?*WasmStore) void;
+pub extern fn ts_language_is_wasm(language: *const Language) bool;
 
 // Allocator
 
@@ -333,10 +348,14 @@ pub const CallocFn = *const fn (count: usize, size: usize) callconv(.c) ?*anyopa
 pub const ReallocFn = *const fn (ptr: ?*anyopaque, size: usize) callconv(.c) ?*anyopaque;
 pub const FreeFn = *const fn (ptr: ?*anyopaque) callconv(.c) void;
 
-pub extern fn ts_set_allocator(new_malloc: ?MallocFn, new_calloc: ?CallocFn, new_realloc: ?ReallocFn, new_free: ?FreeFn) void; // aegis: boundary(A019): api.h's declaration, proved against the header by abi_check.zig
+pub extern fn ts_set_allocator(new_malloc: ?MallocFn, new_calloc: ?CallocFn, new_realloc: ?ReallocFn, new_free: ?FreeFn) void;
 
 /// The runtime's current free function: memory the runtime returns to its
 /// caller (`ts_node_string`, `ts_tree_included_ranges`,
 /// `ts_tree_get_changed_ranges`) is released through it. Declared in
 /// `lib/src/alloc.h`, exported by the library.
-pub extern var ts_current_free: FreeFn; // aegis: boundary(A019): alloc.h's variable, the runtime's free function, exported by the library
+pub extern var ts_current_free: FreeFn;
+
+/// The strncmp the runtime is compiled to call (`src/strncmp.c`, through
+/// `-Dstrncmp=ztreesitter_strncmp`): it reads no byte past `n`, where Zig 0.17's own reads one.
+pub extern fn ztreesitter_strncmp(a: [*]const u8, b: [*]const u8, n: usize) c_int;

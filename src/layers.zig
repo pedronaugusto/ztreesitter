@@ -13,6 +13,7 @@
 
 const std = @import("std");
 const types = @import("types.zig");
+const c = @import("c.zig");
 const tree_mod = @import("tree.zig");
 const parser_mod = @import("parser.zig");
 const language_mod = @import("language.zig");
@@ -262,8 +263,10 @@ pub const Layers = struct {
 
     fn parse(l: *Layers, io: std.Io, input: Input, grammar: *const Grammar, ranges: []const Range, old: ?*const Tree, options: UpdateOptions) UpdateError!Tree {
         const p = try l.parserFor(grammar);
-        // unreachable: layers' ranges are ascending and disjoint (`normalize`), and the runtime's own edits keep them so
-        p.setIncludedRanges(ranges) catch unreachable;
+        // Layers' ranges are ascending and disjoint (`normalize`), and the runtime's own edits
+        // keep them so: the runtime accepts them.
+        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else c.as([*]const c.Range, ranges.ptr); // Range has c.Range's layout, asserted in types.zig
+        if (!c.ts_parser_set_included_ranges(p.raw, ptr, @intCast(ranges.len))) unreachable;
         return p.parse(io, input, old, .{ .deadline = options.deadline }) catch |err| switch (err) {
             error.NoLanguage => unreachable, // unreachable: parserFor set it
             error.Canceled, error.Paused => |e| {
@@ -523,6 +526,18 @@ fn nodeText(input: Input, node: Node, buffer: *[max_name]u8) ?[]const u8 {
     }
 }
 
+/// An `offset!` argument as a number, or null where it is none: a malformed offset
+/// leaves the node's range, as Neovim leaves it.
+fn offsetArg(text: []const u8) ?i64 {
+    const negative = std.mem.startsWith(u8, text, "-");
+    const digits = if (negative) text[1..] else text;
+    if (digits.len == 0 or !std.ascii.isDigit(digits[0])) return null;
+    return switch (std.zig.parseNumberLiteral(digits)) {
+        .int => |magnitude| if (std.math.cast(i64, magnitude)) |v| (if (negative) -v else v) else null,
+        else => null,
+    };
+}
+
 /// A content node's ranges: its range, moved by an `offset!` on its
 /// capture, less its named children's unless the pattern includes them.
 fn contentRanges(arena: std.mem.Allocator, out: *std.ArrayList(Range), q: *const Query, pattern: u16, capture: u32, node: Node, input: Input) error{OutOfMemory}!void {
@@ -533,7 +548,7 @@ fn contentRanges(arena: std.mem.Allocator, out: *std.ArrayList(Range), q: *const
         var delta: [4]i64 = @splat(0);
         for (d.args[1..@min(d.args.len, 5)], &delta) |arg, *v| {
             if (arg != .string) return;
-            v.* = std.fmt.parseInt(i64, arg.string, 10) catch return;
+            v.* = offsetArg(arg.string) orelse return;
         }
         // Neovim keeps the node's range when the offset would invert it.
         range = offsetRange(input, range, delta) orelse range;

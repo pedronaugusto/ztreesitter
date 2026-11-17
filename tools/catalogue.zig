@@ -954,7 +954,11 @@ fn includeClosure(ctx: *github.Context, files: *Set, repo: []const u8, src: []co
         defer ctx.gpa.free(text);
         for (try includes(ctx, text)) |name| {
             const joined = ctx.path(&.{ std.fs.path.dirname(path).?, name });
-            const target = Io.Dir.cwd().realPathFileAlloc(ctx.io, joined, ctx.arena) catch continue;
+            // An include the repository does not hold is a system header, or one a build generates.
+            const target = Io.Dir.cwd().realPathFileAlloc(ctx.io, joined, ctx.arena) catch |err| switch (err) {
+                error.FileNotFound, error.NotDir => continue,
+                else => |e| return e,
+            };
             if (!std.mem.startsWith(u8, target, real_repo) or target.len <= real_repo.len or target[real_repo.len] != std.fs.path.sep) continue;
             if (!github.isFile(ctx.io, target) or seen.contains(target)) continue;
             try seen.put(ctx.arena, target, {});

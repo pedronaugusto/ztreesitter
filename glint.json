@@ -1,0 +1,6 @@
+{
+  "seams": [
+    {"file": "src/c.zig", "rules": ["P007", "P008"], "reason": "the runtime's C API: api.h's declarations and alloc.h's free function, written as the headers write them and proved against them by abi_check.zig, and the two helpers through which the package's files read the runtime's arrays (slice) and its layout-equal types (as)"},
+    {"file": "src/memory.zig", "rules": ["A007", "P007"], "reason": "the runtime's allocator: ts_set_allocator's C callbacks take no context, so the allocator they reach is process-wide, set at start-up before any parser exists (setAllocator's contract); each block carries its length in a header before the pointer the runtime holds, read back by pointer arithmetic"}
+  ]
+}

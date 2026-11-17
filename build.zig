@@ -49,8 +49,11 @@ pub fn build(b: *std.Build) void {
     // Under the sanitizer, one check is left out: query.c copies an empty
     // string with `memcpy(dst, NULL, 0)` (UPSTREAM.md, known upstream
     // behaviour), which glibc's headers declare non-null.
-    const runtime_flags: []const []const u8 = if (sanitize_c) &.{ "-std=c11", "-fno-sanitize=nonnull-attribute" } else &.{"-std=c11"};
+    // Every strncmp the runtime calls is src/strncmp.c's, which reads no byte past
+    // its bound: Zig 0.17's own reads one (that file says where and why).
+    const runtime_flags: []const []const u8 = if (sanitize_c) &.{ "-std=c11", "-fno-sanitize=nonnull-attribute", "-Dstrncmp=ztreesitter_strncmp" } else &.{ "-std=c11", "-Dstrncmp=ztreesitter_strncmp" };
     runtime.root_module.addCSourceFile(.{ .file = b.path("libs/tree-sitter/lib/src/lib.c"), .flags = runtime_flags });
+    runtime.root_module.addCSourceFile(.{ .file = b.path("src/strncmp.c"), .flags = &.{"-std=c11"} });
     runtime.installHeadersDirectory(b.path("libs/tree-sitter/lib/include"), ".", .{});
     b.installArtifact(runtime);
 
@@ -276,9 +279,10 @@ pub fn dev(b: *std.Build, tools: type) void {
 
     tools.preflight.addCi(b, p, .{
         .tests = test_step,
+        .portable_tests = true,
         .bench = .{
             .programs = &.{.{ .name = "throughput", .source = "bench/throughput.zig" }},
-            .imports = benchImports,
+            .imports = tools.preflight.Bench.importsFrom(benchImports),
             .target = target,
             .optimize = optimize,
         },

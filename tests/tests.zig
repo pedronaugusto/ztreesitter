@@ -2,6 +2,7 @@
 //! grammar test skips when its grammar was not selected (`-Dgrammars`).
 
 const std = @import("std");
+const builtin = @import("builtin");
 const ts = @import("ztreesitter");
 const grammars = @import("grammars");
 const catalogue = @import("ztreesitter.catalogue");
@@ -691,6 +692,30 @@ fn compilesOrRefuses(g: *const ts.Grammar, case: *shakedown.Case) !void {
     case.note("{t}: {s}", .{ dialect, text.items });
     var query = ts.Query.init(gpa, g.language(), text.items, .{ .dialect = dialect }) catch return;
     query.deinit();
+}
+
+test "the runtime's strncmp reads no byte past its bound, where the next page is guarded" {
+    if (builtin.os.tag == .windows or builtin.os.tag == .wasi) return error.SkipZigTest;
+    const page = std.heap.pageSize();
+    const pages = try std.posix.mmap(null, 2 * page, .{ .READ = true, .WRITE = true }, .{ .TYPE = .PRIVATE, .ANONYMOUS = true }, -1, 0);
+    defer std.posix.munmap(pages);
+    // The second page, mapped again with no access: a read of it faults, and the test
+    // dies there if the bound is not kept.
+    const guard = try std.posix.mmap(@alignCast(pages[page..].ptr), page, .{}, .{ .TYPE = .PRIVATE, .ANONYMOUS = true, .FIXED = true }, -1, 0);
+    const guarded = guard.ptr;
+    // n = 0 reads nothing, though the first byte of each is guarded.
+    try std.testing.expectEqual(0, ts.c.ztreesitter_strncmp(guarded, guarded, 0));
+    try std.testing.expectEqual(0, ts.c.ztreesitter_strncmp("pair", guarded, 0));
+    // A name that ends where the page ends, with no NUL after it, as a query's source
+    // hands one over: compared to its length, and no further.
+    const name = "pair";
+    const end = pages[page - name.len .. page];
+    @memcpy(end, name);
+    try std.testing.expectEqual(0, ts.c.ztreesitter_strncmp("pair", end.ptr, name.len));
+    try std.testing.expect(ts.c.ztreesitter_strncmp("pais", end.ptr, name.len) > 0);
+    try std.testing.expect(ts.c.ztreesitter_strncmp("paip", end.ptr, name.len) < 0);
+    // NUL still ends a string before the bound.
+    try std.testing.expectEqual(0, ts.c.ztreesitter_strncmp("ab\x00x", "ab\x00y", 4));
 }
 
 test "fuzz: a query source compiles or is refused" {

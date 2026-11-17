@@ -43,7 +43,7 @@ pub const Parser = struct {
     /// Parse only these ranges of the text, in order and not overlapping;
     /// empty means the whole text. Nodes keep absolute positions.
     pub fn setIncludedRanges(p: *Parser, ranges: []const types.Range) RangesError!void {
-        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else @ptrCast(ranges.ptr); // Range has c.Range's layout, asserted in types.zig
+        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else c.as([*]const c.Range, ranges.ptr); // Range has c.Range's layout, asserted in types.zig
         if (!c.ts_parser_set_included_ranges(p.raw, ptr, @intCast(ranges.len))) return error.OverlappingRanges;
     }
 
@@ -51,7 +51,7 @@ pub const Parser = struct {
     pub fn includedRanges(p: *const Parser) []const types.Range {
         var n: u32 = 0;
         const ptr = c.ts_parser_included_ranges(p.raw, &n);
-        return @as([*]const types.Range, @ptrCast(ptr))[0..n]; // Range has c.Range's layout, asserted in types.zig
+        return c.slice(types.Range, c.as([*]const types.Range, ptr), n); // Range has c.Range's layout, asserted in types.zig
     }
 
     /// Forget a paused or cancelled parse, so the next call starts afresh.

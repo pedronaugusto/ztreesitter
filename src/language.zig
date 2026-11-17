@@ -93,14 +93,14 @@ pub const Language = struct {
 
     pub fn supertypes(language: Language) []const u16 {
         var n: u32 = 0;
-        const p = c.ts_language_supertypes(language.ptr, &n) orelse return &.{};
-        return p[0..n];
+        const p = c.ts_language_supertypes(language.ptr, &n);
+        return c.slice(u16, p, n);
     }
 
     pub fn subtypes(language: Language, supertype: u16) []const u16 {
         var n: u32 = 0;
-        const p = c.ts_language_subtypes(language.ptr, supertype, &n) orelse return &.{};
-        return p[0..n];
+        const p = c.ts_language_subtypes(language.ptr, supertype, &n);
+        return c.slice(u16, p, n);
     }
 
     pub fn nextState(language: Language, state: u16, symbol: u16) u16 {

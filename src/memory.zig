@@ -17,7 +17,7 @@ const c = @import("c.zig");
 
 const header = 16;
 
-var installed: ?std.mem.Allocator = null; // aegis: boundary(A007): ts_set_allocator's C callbacks take no context, so the allocator they reach is process-wide; set at start-up before any parser exists (setAllocator's contract)
+var installed: ?std.mem.Allocator = null;
 
 /// Install `allocator` behind the runtime. Start-up, not an operation: call
 /// it before any parser, tree, query or cursor exists, from one thread.
