@@ -10,6 +10,7 @@ pub const layers: []const gantry.rules.Layer = &.{
     } },
     .{ .name = "C boundary", .patterns = &.{
         "src/c.zig",
+        "src/seam.zig",
     } },
     .{ .name = "matchers", .patterns = &.{
         "src/lua_pattern.zig",

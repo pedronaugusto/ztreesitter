@@ -2,6 +2,7 @@
 
 const std = @import("std");
 const c = @import("c.zig");
+const seam = @import("seam.zig");
 const types = @import("types.zig");
 const language_mod = @import("language.zig");
 const memory = @import("memory.zig");
@@ -190,7 +191,7 @@ pub const Node = extern struct {
 
     /// Adjust a node held across an edit, as `Tree.edit` adjusts the tree.
     pub fn edit(n: *Node, e: *const types.InputEdit) void {
-        c.ts_node_edit(&n.raw, c.as(*const c.InputEdit, e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
+        c.ts_node_edit(&n.raw, seam.as(*const c.InputEdit, e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
     }
 
     pub fn eql(a: Node, b: Node) bool {

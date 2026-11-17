@@ -14,6 +14,7 @@
 const std = @import("std");
 const types = @import("types.zig");
 const c = @import("c.zig");
+const seam = @import("seam.zig");
 const tree_mod = @import("tree.zig");
 const parser_mod = @import("parser.zig");
 const language_mod = @import("language.zig");
@@ -265,7 +266,7 @@ pub const Layers = struct {
         const p = try l.parserFor(grammar);
         // Layers' ranges are ascending and disjoint (`normalize`), and the runtime's own edits
         // keep them so: the runtime accepts them.
-        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else c.as([*]const c.Range, ranges.ptr); // Range has c.Range's layout, asserted in types.zig
+        const ptr: ?[*]const c.Range = if (ranges.len == 0) null else seam.as([*]const c.Range, ranges.ptr); // Range has c.Range's layout, asserted in types.zig
         if (!c.ts_parser_set_included_ranges(p.raw, ptr, @intCast(ranges.len))) unreachable;
         return p.parse(io, input, old, .{ .deadline = options.deadline }) catch |err| switch (err) {
             error.NoLanguage => unreachable, // unreachable: parserFor set it

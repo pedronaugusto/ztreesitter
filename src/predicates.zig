@@ -13,6 +13,7 @@
 
 const std = @import("std");
 const c = @import("c.zig");
+const seam = @import("seam.zig");
 const types = @import("types.zig");
 const node_mod = @import("node.zig");
 const language = @import("language.zig");
@@ -90,7 +91,7 @@ pub fn compilePattern(
 ) CompileError!Pattern {
     var count: u32 = 0;
     const steps_ptr = c.ts_query_predicates_for_pattern(query, pattern_index, &count);
-    const steps = c.slice(c.QueryPredicateStep, steps_ptr, count);
+    const steps = seam.slice(c.QueryPredicateStep, steps_ptr, count);
 
     var filters: std.ArrayList(Filter) = .empty;
     var properties: std.ArrayList(Property) = .empty;
@@ -182,7 +183,7 @@ fn deinitFilter(gpa: std.mem.Allocator, f: *Filter) void {
 fn string(query: *const c.Query, id: u32) []const u8 {
     var len: u32 = 0;
     const p = c.ts_query_string_value_for_id(query, id, &len);
-    return c.slice(u8, p, len);
+    return seam.slice(u8, p, len);
 }
 
 fn property(args: []const Arg) CompileError!Property {

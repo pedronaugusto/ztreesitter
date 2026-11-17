@@ -2,6 +2,7 @@
 
 const std = @import("std");
 const c = @import("c.zig");
+const seam = @import("seam.zig");
 const types = @import("types.zig");
 const node_mod = @import("node.zig");
 const language_mod = @import("language.zig");
@@ -115,7 +116,7 @@ pub const Query = struct {
     pub fn captureName(q: *const Query, id: u32) []const u8 {
         var len: u32 = 0;
         const p = c.ts_query_capture_name_for_id(q.raw, id, &len);
-        return c.slice(u8, p, len);
+        return seam.slice(u8, p, len);
     }
 
     pub fn captureIndex(q: *const Query, name: []const u8) ?u32 {
@@ -201,7 +202,7 @@ pub const Match = struct {
 
     fn fromC(m: c.QueryMatch) Match {
         // Capture has c.QueryCapture's layout, asserted in predicates.zig.
-        const caps = c.slice(Capture, if (m.captures) |p| c.as([*]const Capture, p) else null, m.capture_count);
+        const caps = seam.slice(Capture, if (m.captures) |p| seam.as([*]const Capture, p) else null, m.capture_count);
         return .{ .id = m.id, .pattern = m.pattern_index, .captures = caps };
     }
 

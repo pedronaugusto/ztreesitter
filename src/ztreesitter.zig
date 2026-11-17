@@ -69,6 +69,7 @@ pub const max_language_version = c.language_version;
 
 test {
     _ = @import("abi_check.zig");
+    _ = @import("seam.zig");
     _ = @import("regex.zig");
     _ = @import("lua_pattern.zig");
     _ = @import("predicates.zig");

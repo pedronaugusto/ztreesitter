@@ -7,21 +7,6 @@
 //! non-optional pointers; results that can be NULL are optional.
 
 pub const language_version = 15;
-
-/// A pointer the runtime returns and the length it returns with it, as one slice; a
-/// null pointer is the empty slice. The package's files read the runtime's arrays
-/// through it, so the unchecked slice is written here, at the seam, once.
-pub fn slice(comptime T: type, ptr: ?[*]const T, len: usize) []const T {
-    const p = ptr orelse return &.{};
-    return p[0..len];
-}
-
-/// `ptr` as `P`, a pointer to a type the package declares with the runtime's layout
-/// (`types.Range` and `c.Range`, `types.InputEdit` and `c.InputEdit`, a query capture),
-/// each layout asserted equal where the package's type is declared.
-pub fn as(comptime P: type, ptr: anytype) P {
-    return @ptrCast(ptr);
-}
 pub const min_compatible_language_version = 13;
 
 pub const StateId = u16;
@@ -355,7 +340,3 @@ pub extern fn ts_set_allocator(new_malloc: ?MallocFn, new_calloc: ?CallocFn, new
 /// `ts_tree_get_changed_ranges`) is released through it. Declared in
 /// `lib/src/alloc.h`, exported by the library.
 pub extern var ts_current_free: FreeFn;
-
-/// The strncmp the runtime is compiled to call (`src/strncmp.c`, through
-/// `-Dstrncmp=ztreesitter_strncmp`): it reads no byte past `n`, where Zig 0.17's own reads one.
-pub extern fn ztreesitter_strncmp(a: [*]const u8, b: [*]const u8, n: usize) c_int;

@@ -1,6 +1,7 @@
 //! A syntax tree.
 
 const c = @import("c.zig");
+const seam = @import("seam.zig");
 const types = @import("types.zig");
 const node = @import("node.zig");
 const language_mod = @import("language.zig");
@@ -38,7 +39,7 @@ pub const Tree = struct {
     /// Adjust the tree for an edit to its text, before re-parsing with it as
     /// the old tree. Nodes taken from it before the edit are invalid after.
     pub fn edit(t: *Tree, e: types.InputEdit) void {
-        c.ts_tree_edit(t.raw, c.as(*const c.InputEdit, &e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
+        c.ts_tree_edit(t.raw, seam.as(*const c.InputEdit, &e)); // InputEdit has c.InputEdit's layout, asserted in types.zig
     }
 
     /// The ranges the tree was parsed over. Free with `RangeList.deinit`.
@@ -65,7 +66,7 @@ pub const RangeList = struct {
 
     fn init(p: ?[*]c.Range, n: u32) RangeList {
         // Range has c.Range's layout, asserted in types.zig.
-        const items = c.slice(types.Range, if (p) |q| c.as([*]const types.Range, q) else null, n);
+        const items = seam.slice(types.Range, if (p) |q| seam.as([*]const types.Range, q) else null, n);
         return .{ .items = items, .raw = p };
     }
 
