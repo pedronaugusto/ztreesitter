@@ -192,8 +192,9 @@ language serves every layer of it, nesting stops at `max_depth` (8), and a
   functions with libc's, so they are not pointed at the seam.
 - **Grammar C is never sanitized.** It is third-party and unpatched, and
   Zig's Debug default would trap on its undefined behaviour in every
-  consumer's Debug build. `-Dsanitize_c` turns the sanitizer on for the
-  runtime.
+  consumer's Debug build. ztreesitter's own suite runs once more with the
+  runtime sanitized (`-Dsanitize_c`, a development option: a consumer's
+  build takes no option, and its runtime is never sanitized).
 - **The C surface is checked against the header.** `src/c.zig` is written by
   hand and `src/abi_check.zig` compares it with `api.h` by reflection in both
   directions, so a re-vendor that changes the API fails to compile.

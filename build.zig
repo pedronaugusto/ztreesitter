@@ -14,47 +14,16 @@ pub const representative = [_][]const u8{
 };
 
 /// What a project that depends on ztreesitter builds: the runtime, the
-/// `ztreesitter` module over it and `ztreesitter.catalogue`. Grammars are the
-/// application's, through `addGrammars`. The tests, checks, example and
-/// benchmark are `dev`'s.
+/// `ztreesitter` module over it and `ztreesitter.catalogue`, with no build option.
+/// Grammars are the application's, through `addGrammars`. The tests, checks,
+/// example, benchmark and the sanitized suite are `dev`'s.
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
-
-    // Off by default and not tied to `optimize`: Zig's C sanitizer emits
-    // calls into a runtime linked only into a sanitized compilation, so a
-    // consumer that forgot to forward `optimize` would get a link failure
-    // naming a __ubsan symbol. The suite turns it on explicitly. Grammars are
-    // never sanitized: their C is third-party and unpatched.
-    const sanitize_c = b.option(bool, "sanitize_c", "Compile the runtime's C with the undefined-behaviour sanitizer") orelse false;
-
-    //=====================================================================
-    // The runtime: one translation unit, lib/src/lib.c, with the macros
-    // upstream's own build defines.
-    //=====================================================================
-
-    const runtime = b.addLibrary(.{
-        .name = "tree-sitter",
-        .linkage = .static,
-        .root_module = b.createModule(.{
-            .target = target,
-            .optimize = optimize,
-            .link_libc = true,
-            .sanitize_c = if (sanitize_c) .full else .off,
-        }),
-    });
-    runtime.root_module.addIncludePath(b.path("libs/tree-sitter/lib/include"));
-    runtime.root_module.addIncludePath(b.path("libs/tree-sitter/lib/src"));
-    for (runtime_macros) |macro| runtime.root_module.addCMacro(macro[0], macro[1]);
-    // Under the sanitizer, one check is left out: query.c copies an empty
-    // string with `memcpy(dst, NULL, 0)` (UPSTREAM.md, known upstream
-    // behaviour), which glibc's headers declare non-null.
-    // Every strncmp the runtime calls is src/strncmp.c's, which reads no byte past
-    // its bound: Zig 0.17's own reads one (that file says where and why).
-    const runtime_flags: []const []const u8 = if (sanitize_c) &.{ "-std=c11", "-fno-sanitize=nonnull-attribute", "-Dstrncmp=ztreesitter_strncmp" } else &.{ "-std=c11", "-Dstrncmp=ztreesitter_strncmp" };
-    runtime.root_module.addCSourceFile(.{ .file = b.path("libs/tree-sitter/lib/src/lib.c"), .flags = runtime_flags });
-    runtime.root_module.addCSourceFile(.{ .file = b.path("src/strncmp.c"), .flags = &.{"-std=c11"} });
-    runtime.installHeadersDirectory(b.path("libs/tree-sitter/lib/include"), ".", .{});
+    // A consumer's build takes no option: two dependents asking for two argument sets would
+    // make two instances of ztreesitter, and Zig refuses one file in two modules. Its runtime
+    // is never sanitized; the sanitized suite is dev's (`-Dsanitize_c`).
+    const runtime = addRuntime(b, b, target, optimize, false);
     b.installArtifact(runtime);
 
     //=====================================================================
@@ -69,9 +38,39 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/ztreesitter.zig"),
         .target = target,
         .optimize = optimize,
-        .imports = &.{.{ .name = "ztreesitter_options", .module = optionsModule(b, sanitize_c, target, optimize) }},
+        .imports = &.{.{ .name = "ztreesitter_options", .module = optionsModule(b, false, target, optimize) }},
     });
     module.linkLibrary(runtime);
+}
+
+/// The runtime from `p`'s sources, made in `b`: one translation unit, lib/src/lib.c, with the
+/// macros upstream's own build defines. `sanitize`, dev's sanitized suite alone, compiles it
+/// with Zig's C sanitizer, which emits calls into a runtime linked only into a sanitized
+/// compilation. Grammars are never sanitized: their C is third-party and unpatched.
+fn addRuntime(b: *std.Build, p: *std.Build, target: std.Build.ResolvedTarget, optimize: std.lang.Optimize, sanitize: bool) *std.Build.Step.Compile {
+    const runtime = b.addLibrary(.{
+        .name = "tree-sitter",
+        .linkage = .static,
+        .root_module = b.createModule(.{
+            .target = target,
+            .optimize = optimize,
+            .link_libc = true,
+            .sanitize_c = if (sanitize) .full else .off,
+        }),
+    });
+    runtime.root_module.addIncludePath(p.path("libs/tree-sitter/lib/include"));
+    runtime.root_module.addIncludePath(p.path("libs/tree-sitter/lib/src"));
+    for (runtime_macros) |macro| runtime.root_module.addCMacro(macro[0], macro[1]);
+    // Under the sanitizer, one check is left out: query.c copies an empty
+    // string with `memcpy(dst, NULL, 0)` (UPSTREAM.md, known upstream
+    // behaviour), which glibc's headers declare non-null.
+    // Every strncmp the runtime calls is src/strncmp.c's, which reads no byte past
+    // its bound: Zig 0.17's own reads one (that file says where and why).
+    const runtime_flags: []const []const u8 = if (sanitize) &.{ "-std=c11", "-fno-sanitize=nonnull-attribute", "-Dstrncmp=ztreesitter_strncmp" } else &.{ "-std=c11", "-Dstrncmp=ztreesitter_strncmp" };
+    runtime.root_module.addCSourceFile(.{ .file = p.path("libs/tree-sitter/lib/src/lib.c"), .flags = runtime_flags });
+    runtime.root_module.addCSourceFile(.{ .file = p.path("src/strncmp.c"), .flags = &.{"-std=c11"} });
+    runtime.installHeadersDirectory(p.path("libs/tree-sitter/lib/include"), ".", .{});
+    return runtime;
 }
 
 /// What the sources read of the build: the version and whether the runtime
@@ -95,10 +94,22 @@ pub fn dev(b: *std.Build, tools: type) void {
     const test_filter = b.option([]const u8, "test-filter", "Run tests whose names contain this text");
     const filters: []const []const u8 = if (test_filter) |f| &.{f} else &.{};
 
-    const package = b.dependency("ztreesitter", .{ .target = target, .optimize = optimize, .sanitize_c = sanitize_c });
+    const package = b.dependency("ztreesitter", .{ .target = target, .optimize = optimize });
     const host_aegis = b.dependency("aegis", .{ .target = b.graph.host }).module("aegis");
     const p = package.builder;
-    const module = package.module("ztreesitter");
+    // The sanitized suite's runtime and module are dev's own, from the package's sources; a
+    // consumer's are never sanitized.
+    const runtime = if (sanitize_c) addRuntime(b, p, target, optimize, true) else package.artifact("tree-sitter");
+    const module = if (sanitize_c) sanitized: {
+        const own = b.createModule(.{
+            .root_source_file = p.path("src/ztreesitter.zig"),
+            .target = target,
+            .optimize = optimize,
+            .imports = &.{.{ .name = "ztreesitter_options", .module = optionsModule(b, true, target, optimize) }},
+        });
+        own.linkLibrary(runtime);
+        break :sanitized own;
+    } else package.module("ztreesitter");
 
     var names: std.ArrayList([]const u8) = .empty;
     if (spec) |list| {
@@ -126,7 +137,7 @@ pub fn dev(b: *std.Build, tools: type) void {
             .imports = &.{.{ .name = "ztreesitter_options", .module = optionsModule(b, sanitize_c, target, optimize) }},
         }),
     });
-    unit.root_module.linkLibrary(package.artifact("tree-sitter"));
+    unit.root_module.linkLibrary(runtime);
     // The pattern languages' fuzz targets, shakedown properties, beside the
     // code they reach.
     const shakedown = b.dependency("shakedown", .{ .target = target, .optimize = optimize }).module("shakedown");
